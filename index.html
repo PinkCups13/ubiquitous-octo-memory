@@ -4,53 +4,75 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Morning Savers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="atmo" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+  </div>
+
   <div id="app">
-    <header>
-      <div class="header-inner">
-        <div class="logo">
-          <span class="logo-sun">☀️</span>
-          <h1>Morning Savers</h1>
+
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="hero-eyebrow">
+          <span id="today-label" class="day-label"></span>
+          <span class="eyebrow-sep">—</span>
+          <span class="eyebrow-tag">Miracle Morning</span>
         </div>
-        <div class="header-meta">
-          <span id="today-label" class="day-badge"></span>
-          <div class="session-progress">
-            <span id="session-count">0/6</span>
-            <span class="session-label">completed</span>
+        <h1 class="hero-title">
+          <span class="title-word">Morning</span>
+          <span class="title-word title-word-2">Savers</span>
+        </h1>
+        <p class="hero-sub">Six practices. One sacred hour.</p>
+        <div class="session-status">
+          <div class="session-pips">
+            <span class="pip"></span>
+            <span class="pip"></span>
+            <span class="pip"></span>
+            <span class="pip"></span>
+            <span class="pip"></span>
+            <span class="pip"></span>
           </div>
+          <span id="session-count" class="session-count-text">0 of 6 complete</span>
         </div>
       </div>
-      <div class="progress-bar-wrap">
-        <div id="session-bar" class="progress-bar"></div>
+      <div class="hero-rule">
+        <div id="session-bar" class="session-fill"></div>
       </div>
     </header>
 
     <main>
-      <div class="intro-text">
-        <p>Your daily <strong>SAVERS</strong> practice — choose a duration and begin.</p>
-      </div>
-      <div class="savers-grid" id="savers-grid"></div>
+      <div id="savers-grid" class="savers-list"></div>
     </main>
 
     <!-- Timer Modal -->
     <div id="timer-modal" class="modal hidden">
       <div class="modal-backdrop"></div>
       <div class="modal-card">
-        <button class="modal-close" id="modal-close">✕</button>
+        <div class="modal-atmo" id="modal-atmo"></div>
+        <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
 
         <div class="modal-header">
           <div class="modal-letter" id="modal-letter"></div>
-          <div>
-            <h2 id="modal-name"></h2>
-            <p id="modal-day-title" class="modal-day-title"></p>
+          <div class="modal-titles">
+            <div class="modal-saver-name" id="modal-name"></div>
+            <div class="modal-day-title" id="modal-day-title"></div>
           </div>
         </div>
 
         <div class="modal-tabs">
           <button class="tab-btn active" data-tab="practice">Practice</button>
-          <button class="tab-btn" data-tab="instructions">Instructions</button>
+          <button class="tab-btn" data-tab="instructions">Guide</button>
           <button class="tab-btn" data-tab="ideas">Ideas</button>
         </div>
 
@@ -73,10 +95,10 @@
           </div>
 
           <div class="timer-controls">
-            <button id="btn-start" class="ctrl-btn primary">Start</button>
-            <button id="btn-pause" class="ctrl-btn secondary hidden">Pause</button>
+            <button id="btn-start"  class="ctrl-btn primary">Begin</button>
+            <button id="btn-pause"  class="ctrl-btn secondary hidden">Pause</button>
             <button id="btn-resume" class="ctrl-btn secondary hidden">Resume</button>
-            <button id="btn-reset" class="ctrl-btn ghost hidden">Reset</button>
+            <button id="btn-reset"  class="ctrl-btn ghost hidden">Reset</button>
           </div>
         </div>
 
@@ -89,15 +111,16 @@
         </div>
 
         <div id="complete-banner" class="complete-banner hidden">
-          <span class="complete-icon">✓</span>
-          <span>Session complete! Great work.</span>
+          <span class="complete-icon">✦</span>
+          <span>Practice complete.</span>
         </div>
       </div>
     </div>
 
     <footer>
-      <p>Based on the <em>Miracle Morning</em> by Hal Elrod &nbsp;·&nbsp; <strong>SAVERS</strong> method</p>
+      <p>Based on <em>The Miracle Morning</em> by Hal Elrod &nbsp;·&nbsp; the <strong>SAVERS</strong> method</p>
     </footer>
+
   </div>
 
   <script src="data.js"></script>
