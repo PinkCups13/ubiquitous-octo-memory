@@ -1,291 +1,417 @@
-(() => {
-  // ── State ──────────────────────────────────────────────────
-  const today      = new Date();
-  const dayIndex   = today.getDay();           // 0 Sun … 6 Sat
-  const storageKey = `ms-done-${today.toDateString()}`;
+const state = {
+  log: loadLog(),
+  goals: loadGoals(),
+  journal: loadJournal(),
+  toastTimer: null,
+  unlockedIds: new Set()
+};
 
-  let completed       = new Set(JSON.parse(localStorage.getItem(storageKey) || '[]'));
-  let activeSaver     = null;
-  let selectedMinutes = 1;
-  let totalSeconds    = 60;
-  let remaining       = 60;
-  let interval        = null;
-  let timerState      = 'idle';   // idle | running | paused | done
+const heroMiles = document.getElementById('heroMiles');
+const heroSteps = document.getElementById('heroSteps');
+const heroUnlocked = document.getElementById('heroUnlocked');
+const snapshotHelper = document.getElementById('snapshotHelper');
+const quickLogHelper = document.getElementById('quickLogHelper');
+const mapDate = document.getElementById('mapDate');
 
-  const CIRCUMFERENCE = 2 * Math.PI * 88; // r = 88
+const routeBase = document.getElementById('routeBase');
+const routeHalo = document.getElementById('routeHalo');
+const routeProgress = document.getElementById('routeProgress');
+const routeMarkers = document.getElementById('routeMarkers');
+const youMarker = document.getElementById('youMarker');
+const routeStatLine = document.getElementById('routeStatLine');
 
-  // ── Accent palette (within the rose/pink editorial world) ──
-  const ACCENT = {
-    S:  { color: '#e896b6', stroke: '#e090b0', atmo: 'rgba(224, 100, 155, 0.55)' },
-    A:  { color: '#c098d2', stroke: '#b888cc', atmo: 'rgba(175, 72, 210, 0.45)'  },
-    V:  { color: '#d2b092', stroke: '#c8a882', atmo: 'rgba(208, 155, 72, 0.45)'  },
-    E:  { color: '#e08880', stroke: '#d87870', atmo: 'rgba(215, 90, 75, 0.42)'   },
-    R:  { color: '#c07a90', stroke: '#b86a80', atmo: 'rgba(185, 72, 98, 0.45)'   },
-    SC: { color: '#d2a0a8', stroke: '#c89098', atmo: 'rgba(200, 120, 130, 0.45)' },
-  };
+const dateInput = document.getElementById('dateInput');
+const stepsInput = document.getElementById('stepsInput');
+const logButton = document.getElementById('logButton');
 
-  // ── DOM ────────────────────────────────────────────────────
-  const grid          = document.getElementById('savers-grid');
-  const modal         = document.getElementById('timer-modal');
-  const modalClose    = document.getElementById('modal-close');
-  const modalAtmo     = document.getElementById('modal-atmo');
-  const modalLetter   = document.getElementById('modal-letter');
-  const modalName     = document.getElementById('modal-name');
-  const modalDayTitle = document.getElementById('modal-day-title');
-  const timerDisplay  = document.getElementById('timer-display');
-  const timerStatus   = document.getElementById('timer-status');
-  const ringFg        = document.getElementById('ring-fg');
-  const btnStart      = document.getElementById('btn-start');
-  const btnPause      = document.getElementById('btn-pause');
-  const btnResume     = document.getElementById('btn-resume');
-  const btnReset      = document.getElementById('btn-reset');
-  const completeBanner = document.getElementById('complete-banner');
-  const sessionCount  = document.getElementById('session-count');
-  const sessionBar    = document.getElementById('session-bar');
-  const todayLabel    = document.getElementById('today-label');
-  const instrContent  = document.getElementById('instructions-content');
-  const ideasContent  = document.getElementById('ideas-content');
+const dailyGoalInput = document.getElementById('dailyGoalInput');
+const mileGoalInput = document.getElementById('mileGoalInput');
+const saveGoalsButton = document.getElementById('saveGoalsButton');
+const resetProgressButton = document.getElementById('resetProgressButton');
 
-  const DAY_NAMES_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const stopsWrap = document.getElementById('stopsWrap');
+const logBody = document.getElementById('logBody');
 
-  // ── Init ───────────────────────────────────────────────────
-  function init() {
-    todayLabel.textContent = DAY_NAMES_FULL[dayIndex];
-    renderGrid();
-    updateSessionUI();
-    attachListeners();
+const journalPromptText = document.getElementById('journalPromptText');
+const journalText = document.getElementById('journalText');
+const saveJournalButton = document.getElementById('saveJournalButton');
+const savedEntryCard = document.getElementById('savedEntryCard');
+const savedEntryText = document.getElementById('savedEntryText');
+
+const toast = document.getElementById('toast');
+const modalBg = document.getElementById('modalBg');
+const modalImage = document.getElementById('modalImage');
+const modalFallback = document.getElementById('modalFallback');
+const modalEyebrow = document.getElementById('modalEyebrow');
+const modalTitle = document.getElementById('modalTitle');
+const modalText = document.getElementById('modalText');
+const closeModalButton = document.getElementById('closeModalButton');
+
+function loadLog(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+  } catch { return []; }
+}
+function saveLog(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.log)); }
+
+function loadGoals(){
+  try{
+    const raw = localStorage.getItem(GOALS_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return {
+      dailySteps: Number(parsed?.dailySteps) > 0 ? Number(parsed.dailySteps) : DEFAULT_DAILY_GOAL,
+      mileGoal: Number(parsed?.mileGoal) > 0 ? Number(parsed.mileGoal) : DEFAULT_MILE_GOAL
+    };
+  } catch {
+    return { dailySteps: DEFAULT_DAILY_GOAL, mileGoal: DEFAULT_MILE_GOAL };
   }
+}
+function saveGoals(){ localStorage.setItem(GOALS_KEY, JSON.stringify(state.goals)); }
 
-  // ── Render editorial SAVER rows ────────────────────────────
-  function renderGrid() {
-    grid.innerHTML = '';
-    SAVERS_DATA.forEach((saver, i) => {
-      const day   = saver.daily[dayIndex];
-      const num   = String(i + 1).padStart(2, '0');
-      const done  = completed.has(saver.id);
-      const bgLetter = saver.id === 'SC' ? 'S' : saver.letter;
+function loadJournal(){
+  try{
+    const raw = localStorage.getItem(JOURNAL_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch { return {}; }
+}
+function saveJournal(){ localStorage.setItem(JOURNAL_KEY, JSON.stringify(state.journal)); }
 
-      const el = document.createElement('div');
-      el.className   = `saver-item${done ? ' done' : ''}`;
-      el.dataset.saver = saver.id;
-      el.setAttribute('role', 'button');
-      el.setAttribute('tabindex', '0');
-      el.innerHTML = `
-        <div class="si-index">${num}</div>
-        <div class="si-body">
-          <span class="si-name">${saver.name}</span>
-          <span class="si-day-title">${day.title}</span>
-          <p class="si-snippet">${day.snippet}</p>
-        </div>
-        <div class="si-right">
-          <div class="si-durations">
-            <span class="si-dur">1′</span>
-            <span class="si-dur">3′</span>
-            <span class="si-dur">10′</span>
-          </div>
-          <div class="si-check">✦</div>
-        </div>
-        <div class="si-bg-letter" aria-hidden="true">${bgLetter}</div>
-      `;
+function todayKey(){ return new Date().toISOString().split('T')[0]; }
+function getPromptForToday(){
+  const d = new Date();
+  const index = (d.getFullYear() * 372 + (d.getMonth()+1) * 31 + d.getDate()) % JOURNAL_PROMPTS.length;
+  return JOURNAL_PROMPTS[index];
+}
+function getTotalSteps(){ return state.log.reduce((sum, e) => sum + Number(e.steps || 0), 0); }
+function getTotalMiles(){ return +(getTotalSteps() / STEPS_PER_MILE).toFixed(2); }
+function getUnlockedStops(){ const m = getTotalMiles(); return STOPS.filter(s => m >= s.miles); }
+function getPercentComplete(){
+  const goal = Math.max(0.1, state.goals.mileGoal);
+  return Math.min(100, Math.round((getTotalMiles() / goal) * 100));
+}
 
-      el.addEventListener('click', () => openModal(saver));
-      el.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(saver); }
-      });
-
-      grid.appendChild(el);
-    });
+function buildSmoothPath(points){
+  if(!points.length) return '';
+  let path = `M ${points[0][0]},${points[0][1]}`;
+  for(let i=0;i<points.length-1;i++){
+    const current = points[i], next = points[i+1];
+    const midX = (current[0] + next[0]) / 2;
+    path += ` C ${midX},${current[1]} ${midX},${next[1]} ${next[0]},${next[1]}`;
   }
+  return path;
+}
 
-  // ── Open modal ─────────────────────────────────────────────
-  function openModal(saver) {
-    activeSaver = saver;
-    const day    = saver.daily[dayIndex];
-    const accent = ACCENT[saver.id];
-
-    // Header
-    modalLetter.textContent = saver.id === 'SC' ? 'S' : saver.letter;
-    modalLetter.style.color = accent.color;
-    modalName.textContent   = saver.name;
-    modalDayTitle.textContent = day.title;
-
-    // Atmospheric glow
-    modalAtmo.style.background = `radial-gradient(circle, ${accent.atmo} 0%, transparent 70%)`;
-
-    // Ring
-    ringFg.style.stroke = accent.stroke;
-
-    // Instructions
-    instrContent.innerHTML = saver.instructions;
-
-    // Ideas
-    ideasContent.innerHTML = saver.ideas.map((idea) => `
-      <div class="idea-item">
-        <strong>${idea.title}</strong>
-        <div class="idea-item-body">${idea.body}</div>
-      </div>
-    `).join('');
-
-    // Complete state
-    completeBanner.classList.toggle('hidden', !completed.has(saver.id));
-
-    // Reset to defaults
-    setDuration(1);
-    resetTimer();
-    switchTab('practice');
-
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeModal() {
-    stopTimer();
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
-    activeSaver = null;
-  }
-
-  // ── Duration ───────────────────────────────────────────────
-  function setDuration(minutes) {
-    selectedMinutes = minutes;
-    totalSeconds    = minutes * 60;
-    remaining       = totalSeconds;
-
-    document.querySelectorAll('.dur-btn').forEach((btn) => {
-      btn.classList.toggle('active', parseInt(btn.dataset.minutes) === minutes);
-    });
-
-    updateDisplay();
-    setRing(1);
-  }
-
-  // ── Timer ──────────────────────────────────────────────────
-  function tick() {
-    remaining--;
-    updateDisplay();
-    setRing(remaining / totalSeconds);
-    if (remaining <= 0) {
-      clearInterval(interval);
-      timerState = 'done';
-      timerStatus.textContent = 'Complete';
-      showControls('done');
-      markComplete();
+function interpolatePoint(miles){
+  const goalCap = Math.max(...ROUTE_MILES);
+  const clamped = Math.max(0, Math.min(miles, goalCap));
+  for(let i=0;i<ROUTE_MILES.length-1;i++){
+    if(clamped >= ROUTE_MILES[i] && clamped <= ROUTE_MILES[i+1]){
+      const ratio = (clamped - ROUTE_MILES[i]) / (ROUTE_MILES[i+1] - ROUTE_MILES[i]);
+      const x = ROUTE_POINTS[i][0] + ratio * (ROUTE_POINTS[i+1][0] - ROUTE_POINTS[i][0]);
+      const y = ROUTE_POINTS[i][1] + ratio * (ROUTE_POINTS[i+1][1] - ROUTE_POINTS[i][1]);
+      return [x,y];
     }
   }
+  return ROUTE_POINTS[ROUTE_POINTS.length-1];
+}
 
-  function startTimer() {
-    if (timerState === 'done') return;
-    timerState = 'running';
-    timerStatus.textContent = 'In progress';
-    showControls('running');
-    interval = setInterval(tick, 1000);
+function buildProgressPath(miles){
+  const goalCap = Math.max(...ROUTE_MILES);
+  const clamped = Math.max(0, Math.min(miles, goalCap));
+  let segment = 0;
+  for(let i=0;i<ROUTE_MILES.length-1;i++){
+    if(clamped <= ROUTE_MILES[i+1]){ segment = i; break; }
+    segment = i + 1;
   }
+  const points = [...ROUTE_POINTS.slice(0, segment+1)];
+  const endPoint = interpolatePoint(clamped);
+  const last = points[points.length-1];
+  if(!last || last[0] !== endPoint[0] || last[1] !== endPoint[1]) points.push(endPoint);
+  return buildSmoothPath(points);
+}
 
-  function pauseTimer() {
-    clearInterval(interval);
-    timerState = 'paused';
-    timerStatus.textContent = 'Paused';
-    showControls('paused');
+function createSvgNode(tag, attrs={}){
+  const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  Object.entries(attrs).forEach(([k,v]) => node.setAttribute(k,v));
+  return node;
+}
+
+function renderHome(){
+  const steps = getTotalSteps();
+  const miles = getTotalMiles();
+  const unlocked = getUnlockedStops().length;
+  const pct = getPercentComplete();
+
+  heroMiles.textContent = miles;
+  heroSteps.textContent = steps.toLocaleString();
+  heroUnlocked.textContent = `${unlocked}/10`;
+  snapshotHelper.textContent = `${pct}% complete · ${steps.toLocaleString()} total steps · ${state.goals.mileGoal} mile goal`;
+
+  const selectedDate = dateInput.value || todayKey();
+  const existing = state.log.find(entry => entry.date === selectedDate);
+  if(existing){
+    quickLogHelper.textContent = `Selected day already has ${Number(existing.steps).toLocaleString()} steps logged.`;
+  } else {
+    quickLogHelper.textContent = `Daily goal: ${state.goals.dailySteps.toLocaleString()} steps.`;
   }
+}
 
-  function resumeTimer() {
-    timerState = 'running';
-    timerStatus.textContent = 'In progress';
-    showControls('running');
-    interval = setInterval(tick, 1000);
-  }
+function renderGoals(){
+  dailyGoalInput.value = state.goals.dailySteps;
+  mileGoalInput.value = state.goals.mileGoal;
+}
 
-  function resetTimer() {
-    stopTimer();
-    remaining  = totalSeconds;
-    timerState = 'idle';
-    timerStatus.textContent = 'Ready';
-    updateDisplay();
-    setRing(1);
-    showControls('idle');
-  }
+function renderRoutePreview(){
+  const miles = getTotalMiles();
+  const fullPath = buildSmoothPath(ROUTE_POINTS);
+  const progressPath = buildProgressPath(miles);
+  routeBase.setAttribute('d', fullPath);
+  routeHalo.setAttribute('d', progressPath);
+  routeProgress.setAttribute('d', progressPath);
+  routeMarkers.innerHTML = '';
 
-  function stopTimer() {
-    clearInterval(interval);
-    interval = null;
-  }
+  STOPS.forEach((stop, index) => {
+    const [x, y] = ROUTE_POINTS[index + 1];
+    const unlocked = miles >= stop.miles;
+    const g = createSvgNode('g', { transform: `translate(${x},${y})` });
 
-  function updateDisplay() {
-    const m = Math.floor(remaining / 60);
-    const s = remaining % 60;
-    timerDisplay.textContent = `${m}:${String(s).padStart(2, '0')}`;
-  }
-
-  function setRing(fraction) {
-    const offset = CIRCUMFERENCE * (1 - Math.max(0, Math.min(1, fraction)));
-    ringFg.style.strokeDashoffset = offset;
-    ringFg.style.strokeDasharray  = CIRCUMFERENCE;
-  }
-
-  function showControls(state) {
-    btnStart.classList.toggle('hidden',  state !== 'idle');
-    btnPause.classList.toggle('hidden',  state !== 'running');
-    btnResume.classList.toggle('hidden', state !== 'paused');
-    btnReset.classList.toggle('hidden',  state === 'idle');
-  }
-
-  // ── Mark complete ──────────────────────────────────────────
-  function markComplete() {
-    if (!activeSaver) return;
-    completed.add(activeSaver.id);
-    localStorage.setItem(storageKey, JSON.stringify([...completed]));
-    completeBanner.classList.remove('hidden');
-    updateSessionUI();
-
-    const row = grid.querySelector(`[data-saver="${activeSaver.id}"]`);
-    if (row) row.classList.add('done');
-  }
-
-  // ── Session UI ─────────────────────────────────────────────
-  function updateSessionUI() {
-    const count = completed.size;
-    sessionCount.textContent = `${count} of 6 complete`;
-    sessionBar.style.width   = `${(count / 6) * 100}%`;
-
-    document.querySelectorAll('.pip').forEach((pip, i) => {
-      pip.classList.toggle('done', i < count);
+    const circle = createSvgNode('circle', {
+      r:'18',
+      fill: unlocked ? 'rgba(255,252,253,.98)' : 'rgba(247,238,242,.95)',
+      stroke: unlocked ? '#d47d9b' : '#d8bfca',
+      'stroke-width': unlocked ? '2.2' : '1.5'
     });
+    const icon = createSvgNode('text', {
+      'text-anchor':'middle',
+      'dominant-baseline':'central',
+      'font-size':'12'
+    });
+    icon.textContent = stop.emoji || String(stop.id);
+
+    const milesText = createSvgNode('text', {
+      'text-anchor':'middle',
+      y:'31',
+      'font-family':'Plus Jakarta Sans, sans-serif',
+      'font-size':'8.6',
+      'font-weight':'700',
+      fill: unlocked ? '#9f5570' : '#9f7b8d'
+    });
+    milesText.textContent = `${stop.miles} mi`;
+
+    const label = createSvgNode('text', {
+      'text-anchor':'middle',
+      y:'48',
+      'class':'routeLabel'
+    });
+    label.textContent = stop.short || stop.name;
+
+    g.append(circle, icon, milesText, label);
+    routeMarkers.appendChild(g);
+  });
+
+  const [x, y] = interpolatePoint(miles);
+  youMarker.setAttribute('transform', `translate(${x},${y})`);
+
+  routeStatLine.innerHTML = `<strong>${miles.toFixed(2)} miles</strong> travelled · <strong>${getTotalSteps().toLocaleString()}</strong> steps logged · <strong>${getUnlockedStops().length}/10</strong> stops unlocked`;
+}
+
+function renderStops(){
+  const miles = getTotalMiles();
+  const nowUnlocked = new Set(getUnlockedStops().map(stop => stop.id));
+  for(const id of nowUnlocked){
+    if(!state.unlockedIds.has(id)){
+      const stop = STOPS.find(s => s.id === id);
+      if(stop) showToast(`Unlocked: ${stop.name}`);
+    }
+  }
+  state.unlockedIds = nowUnlocked;
+
+  stopsWrap.innerHTML = STOPS.map((stop, index) => {
+    const unlocked = miles >= stop.miles;
+    const sizeClass = index === 0 || index === 5 || index === 9 ? 'large' : (index === 2 || index === 7 ? 'tall' : '');
+    return `
+      <article class="tile ${sizeClass} ${unlocked ? 'unlocked' : 'locked'}">
+        <div class="tileFallback" style="background:${stop.fallback}">${stop.name}</div>
+        <img src="${stop.image}" alt="${stop.name}" onload="this.style.opacity=1" onerror="this.style.display='none'">
+        <div class="tileContent">
+          <div class="tileTop">
+            <div class="tileMiles">${stop.miles} miles · stop ${String(stop.id).padStart(2,'0')}</div>
+            <div class="tileStatus">${unlocked ? 'Unlocked' : 'Locked'}</div>
+          </div>
+          <div class="tileTitle">${stop.name}</div>
+          <div class="tileNote">${stop.note}</div>
+          <button class="tileBtn" data-postcard="${stop.id}" ${unlocked ? '' : 'disabled'}>View postcard</button>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+function renderJournal(){
+  const today = todayKey();
+  journalPromptText.textContent = getPromptForToday();
+  journalText.value = state.journal[today] || '';
+  if(state.journal[today]){
+    savedEntryCard.style.display = '';
+    savedEntryText.textContent = state.journal[today];
+  } else {
+    savedEntryCard.style.display = 'none';
+    savedEntryText.textContent = '';
   }
 
-  // ── Tab switching ──────────────────────────────────────────
-  function switchTab(name) {
-    document.querySelectorAll('.tab-btn').forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.tab === name);
-    });
-    document.getElementById('tab-practice').classList.toggle('hidden',     name !== 'practice');
-    document.getElementById('tab-instructions').classList.toggle('hidden', name !== 'instructions');
-    document.getElementById('tab-ideas').classList.toggle('hidden',        name !== 'ideas');
+  if(!state.log.length){
+    logBody.innerHTML = '<div class="journalEntry"><div class="journalDate">No entries yet</div><div class="journalSteps">Start the quest</div><div class="journalMiles">0.00 mi</div><div></div></div>';
+    return;
   }
+  logBody.innerHTML = state.log.map(entry => `
+    <div class="journalEntry">
+      <div class="journalDate">${entry.date}</div>
+      <div class="journalSteps">${Number(entry.steps).toLocaleString()} steps</div>
+      <div class="journalMiles">${(Number(entry.steps)/STEPS_PER_MILE).toFixed(2)} mi</div>
+      <button class="deleteBtn" aria-label="Delete ${entry.date}" data-delete="${entry.date}">×</button>
+    </div>
+  `).join('');
+}
 
-  // ── Listeners ──────────────────────────────────────────────
-  function attachListeners() {
-    modalClose.addEventListener('click', closeModal);
-    modal.querySelector('.modal-backdrop').addEventListener('click', closeModal);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
-    });
+function renderAll(){
+  renderHome();
+  renderGoals();
+  renderRoutePreview();
+  renderStops();
+  renderJournal();
+}
 
-    btnStart.addEventListener('click',  startTimer);
-    btnPause.addEventListener('click',  pauseTimer);
-    btnResume.addEventListener('click', resumeTimer);
-    btnReset.addEventListener('click',  resetTimer);
-
-    document.querySelectorAll('.dur-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        if (timerState !== 'idle') resetTimer();
-        setDuration(parseInt(btn.dataset.minutes));
-      });
-    });
-
-    document.querySelectorAll('.tab-btn').forEach((btn) => {
-      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-    });
+function logSteps(){
+  const date = dateInput.value;
+  const steps = Number.parseInt(stepsInput.value, 10);
+  if(!date || !steps || steps < 1){
+    showToast('Enter a date and a real step count.');
+    return;
   }
+  const existing = state.log.find(entry => entry.date === date);
+  if(existing) existing.steps += steps;
+  else state.log.push({date, steps});
+  state.log.sort((a,b) => b.date.localeCompare(a.date));
+  saveLog();
+  stepsInput.value = '';
+  renderAll();
+  showToast(`Logged ${steps.toLocaleString()} steps.`);
+}
 
-  init();
-})();
+function saveGoalsAction(){
+  const dailySteps = Number.parseInt(dailyGoalInput.value, 10);
+  const mileGoal = Number.parseFloat(mileGoalInput.value);
+  if(!dailySteps || dailySteps < 1 || !mileGoal || mileGoal <= 0){
+    showToast('Enter real goal numbers.');
+    return;
+  }
+  state.goals.dailySteps = dailySteps;
+  state.goals.mileGoal = +mileGoal.toFixed(1).replace(/\.0$/, '');
+  saveGoals();
+  renderAll();
+  showToast('Goals saved.');
+}
+
+function resetProgress(){
+  state.log = [];
+  state.journal = {};
+  saveLog();
+  saveJournal();
+  renderAll();
+  showToast('Progress reset.');
+}
+
+function saveJournalEntry(){
+  const text = journalText.value.trim();
+  const today = todayKey();
+  if(!text){
+    delete state.journal[today];
+    saveJournal();
+    renderJournal();
+    showToast('Today’s journal entry cleared.');
+    return;
+  }
+  state.journal[today] = text;
+  saveJournal();
+  renderJournal();
+  showToast('Journal entry saved.');
+}
+
+function deleteEntry(date){
+  state.log = state.log.filter(entry => entry.date !== date);
+  saveLog();
+  renderAll();
+  showToast('Entry removed. Order restored.');
+}
+
+function openPostcard(id){
+  const stop = STOPS.find(s => s.id === Number(id));
+  if(!stop) return;
+  modalEyebrow.textContent = `${stop.miles} miles · real landmark postcard`;
+  modalTitle.textContent = stop.name;
+  modalText.innerHTML = `<strong>${stop.souvenir}</strong><br>${stop.note}<br><span style="display:inline-block;margin-top:8px;font-size:.8rem;color:#7d5f6c;">Photo source: Wikimedia Commons</span>`;
+  modalFallback.textContent = stop.name;
+  modalFallback.style.background = stop.fallback;
+  modalImage.classList.remove('loaded');
+  modalImage.style.display = '';
+  modalImage.alt = stop.name;
+  modalImage.onload = () => modalImage.classList.add('loaded');
+  modalImage.onerror = () => { modalImage.style.display = 'none'; };
+  modalImage.src = stop.image;
+  modalBg.classList.add('show');
+  modalBg.setAttribute('aria-hidden', 'false');
+}
+
+function closeModal(){
+  modalBg.classList.remove('show');
+  modalBg.setAttribute('aria-hidden', 'true');
+}
+
+function showToast(message){
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(state.toastTimer);
+  state.toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+
+function switchScreen(name){
+  document.querySelectorAll('.screen').forEach(screen => {
+    screen.classList.toggle('active', screen.id === `screen-${name}`);
+  });
+  document.querySelectorAll('.navBtn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.screen === name);
+  });
+}
+
+function init(){
+  const today = new Date();
+  dateInput.value = today.toISOString().split('T')[0];
+  mapDate.textContent = today.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
+  state.unlockedIds = new Set(getUnlockedStops().map(stop => stop.id));
+  renderAll();
+
+  logButton.addEventListener('click', logSteps);
+  saveGoalsButton.addEventListener('click', saveGoalsAction);
+  resetProgressButton.addEventListener('click', resetProgress);
+  saveJournalButton.addEventListener('click', saveJournalEntry);
+
+  stepsInput.addEventListener('keydown', event => { if(event.key === 'Enter') logSteps(); });
+
+  document.addEventListener('click', event => {
+    const deleteDate = event.target.getAttribute('data-delete');
+    if(deleteDate) deleteEntry(deleteDate);
+    const postcardId = event.target.getAttribute('data-postcard');
+    if(postcardId) openPostcard(postcardId);
+    const nav = event.target.closest('.navBtn');
+    if(nav) switchScreen(nav.dataset.screen);
+  });
+
+  closeModalButton.addEventListener('click', closeModal);
+  modalBg.addEventListener('click', event => { if(event.target === modalBg) closeModal(); });
+  document.addEventListener('keydown', event => { if(event.key === 'Escape') closeModal(); });
+}
+
+document.addEventListener('DOMContentLoaded', init);
