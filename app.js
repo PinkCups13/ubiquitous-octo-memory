@@ -95,7 +95,6 @@ const heroSteps       = document.getElementById('heroSteps');
 const heroUnlocked    = document.getElementById('heroUnlocked');
 const snapshotHelper  = document.getElementById('snapshotHelper');
 const quickLogHelper  = document.getElementById('quickLogHelper');
-const progressChip    = document.getElementById('progressChip');
 const progressBarFill = document.getElementById('progressBarFill');
 const mapDate         = document.getElementById('mapDate');
 const currentGoalLine = document.getElementById('currentGoalLine');
@@ -106,12 +105,13 @@ const routeProgress = document.getElementById('routeProgress');
 const routeMarkers  = document.getElementById('routeMarkers');
 const youMarker     = document.getElementById('youMarker');
 
-const stepsInput          = document.getElementById('stepsInput');
-const logButton           = document.getElementById('logButton');
-const goalStepsInput      = document.getElementById('goalStepsInput');
-const saveGoalsButton     = document.getElementById('saveGoalsButton');
-const resetProgressButton = document.getElementById('resetProgressButton');
-const stopsWrap           = document.getElementById('stopsWrap');
+const stepsInput            = document.getElementById('stepsInput');
+const logButton             = document.getElementById('logButton');
+const goalStepsInput        = document.getElementById('goalStepsInput');
+const saveGoalsButton       = document.getElementById('saveGoalsButton');
+const resetProgressButton   = document.getElementById('resetProgressButton');
+const stopsWrap             = document.getElementById('stopsWrap');
+const stopsUnlockedSummary  = document.getElementById('stopsUnlockedSummary');
 
 const toast            = document.getElementById('toast');
 const modalBg          = document.getElementById('modalBg');
@@ -133,7 +133,6 @@ function renderHome() {
   heroUnlocked.textContent = `${unlocked}/6`;
 
   progressBarFill.style.width = `${pct}%`;
-  progressChip.textContent    = `${pct}% · ${unlocked}/6 stops`;
 
   const goalK = (state.goals.totalSteps / 1000).toFixed(0);
   snapshotHelper.textContent = pct < 100
@@ -187,22 +186,27 @@ function renderRoute() {
 }
 
 function renderStops() {
+  const unlocked = getUnlockedCount();
+  stopsUnlockedSummary.textContent = `${unlocked} of 6 unlocked`;
+
   stopsWrap.innerHTML = STOPS.map((stop, i) => {
-    const unlocked  = stopUnlocked(i);
-    const target    = getStopTarget(i).toLocaleString();
-    const sizeClass = i === 0 || i === 4 ? 'large' : i === 2 ? 'tall' : '';
+    const isUnlocked  = stopUnlocked(i);
+    const target      = getStopTarget(i);
+    const tilePct     = Math.min(100, Math.round(state.steps / target * 100));
+    const sizeClass   = i === 0 || i === 4 ? 'large' : i === 2 ? 'tall' : '';
     return `
-      <article class="tile ${sizeClass} ${unlocked ? 'unlocked' : 'locked'}">
+      <article class="tile ${sizeClass} ${isUnlocked ? 'unlocked' : 'locked'}">
         <div class="tileFallback" style="background:${stop.fallback}">${stop.name}</div>
         <img src="${stop.image}" alt="${stop.name}" onload="this.style.opacity=1" onerror="this.style.display='none'">
         <div class="tileContent">
           <div class="tileTop">
-            <div class="tileMiles">${target} steps · stop ${String(stop.id).padStart(2, '0')}</div>
-            <div class="tileStatus">${unlocked ? 'Unlocked' : 'Locked'}</div>
+            <div class="tileMiles">${target.toLocaleString()} steps · stop ${String(stop.id).padStart(2, '0')}</div>
+            <div class="tileStatus">${isUnlocked ? 'Unlocked' : 'Locked'}</div>
           </div>
           <div class="tileTitle">${stop.name}</div>
           <div class="tileNote">${stop.note}</div>
-          <button class="tileBtn" data-postcard="${stop.id}" ${unlocked ? '' : 'disabled'}>View postcard</button>
+          <div class="tileProgressBar"><div class="tileProgressFill" style="width:${tilePct}%"></div></div>
+          <button class="tileBtn" data-postcard="${stop.id}" ${isUnlocked ? '' : 'disabled'}>View postcard</button>
         </div>
       </article>`;
   }).join('');
@@ -239,11 +243,11 @@ function checkCelebrations(prevSteps) {
   STOPS.forEach((stop, i) => {
     const target = getStopTarget(i);
     if (prevSteps < target && now >= target) {
-      queueToast(`Photo unlocked: ${stop.name}`);
+      queueToast(`Photo unlocked · ${stop.name} is now open.`);
     }
   });
   if (prevSteps < state.goals.totalSteps && now >= state.goals.totalSteps) {
-    queueToast('Quest complete.');
+    queueToast('Goal met · Quest complete.');
   }
 }
 
