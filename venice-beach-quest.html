@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Venice Beach Quest</title>
+<meta name="theme-color" content="#fdf8f5" />
+<meta name="description" content="Venice Beach Quest — a trust-based walking app with real Venice landmark unlocks." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --rose:#c07890;
+  --roseDeep:#8a4d65;
+  --gold:#a87c3c;
+  --ink:#251020;
+  --inkSoft:#6b5060;
+  --line:rgba(100,60,80,.1);
+  --shadow:0 8px 32px rgba(80,40,60,.11);
+  --shadowSoft:0 2px 12px rgba(80,40,60,.07);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  color:var(--ink);
+  background:#fdf8f5;
+  overflow:hidden;
+}
+.app{
+  position:relative;
+  height:100%;
+  width:min(100%, 500px);
+  margin:0 auto;
+  overflow:hidden;
+}
+.screen{
+  position:absolute; inset:0;
+  padding:max(16px, env(safe-area-inset-top)) 16px calc(76px + env(safe-area-inset-bottom)) 16px;
+  overflow-y:auto;
+  opacity:0; transform:translateY(8px); pointer-events:none;
+  transition:opacity .24s ease, transform .24s ease;
+}
+.screen.active{opacity:1; transform:translateY(0); pointer-events:auto}
+
+.panel{
+  background:#fff;
+  border:1px solid rgba(100,60,80,.09);
+  box-shadow:var(--shadowSoft);
+  border-radius:16px;
+}
+.surface{
+  background:#fff;
+  border:1px solid rgba(100,60,80,.09);
+  box-shadow:var(--shadow);
+  border-radius:20px;
+  overflow:hidden;
+}
+.stack{display:grid; gap:12px}
+
+.tag{
+  font-size:.63rem;
+  font-weight:700;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+  color:var(--gold);
+}
+.surfaceHead{
+  display:flex; justify-content:space-between; align-items:end; gap:12px;
+  padding:20px 18px 10px;
+}
+.surfaceTitle{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2rem; line-height:.96; font-weight:600;
+  color:var(--ink); margin-top:4px;
+}
+.surfaceCopy{
+  margin-top:6px; font-size:.79rem; line-height:1.58;
+  color:var(--inkSoft); max-width:18rem;
+}
+.mapDate{font-size:.69rem; color:var(--inkSoft); white-space:nowrap; font-weight:500}
+
+.mapWrap{padding:0 12px 14px}
+.mapShell{
+  position:relative;
+  min-height:296px; padding:16px 10px 14px;
+  border-radius:12px; overflow:hidden;
+  border:1px solid rgba(100,60,80,.08);
+  background:
+    linear-gradient(180deg, rgba(253,248,245,.52), rgba(253,248,245,.16)),
+    url('https://commons.wikimedia.org/wiki/Special:FilePath/Los%20Angeles%20-%20Venice%20Canal%20Historic%20District%2001.jpg') center/cover no-repeat;
+}
+svg{display:block; width:100%; min-width:520px; overflow:visible}
+.legend{display:flex; gap:14px; flex-wrap:wrap; padding:10px 6px 0; font-size:.69rem; color:var(--inkSoft)}
+.legendItem{display:inline-flex; gap:6px; align-items:center}
+.dot{width:7px; height:7px; border-radius:50%}
+.dot.u{background:var(--rose)}
+.dot.l{background:#cdb0bc}
+.dot.y{background:#fff; border:2px solid var(--roseDeep)}
+.routeStatLine{padding:10px 6px 0; font-size:.72rem; line-height:1.5; color:var(--inkSoft)}
+.routeStatLine strong{color:var(--roseDeep); font-weight:700}
+.routeLabel{
+  font-size:8px; fill:#7a5868;
+  font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; letter-spacing:.04em;
+}
+
+.compactLog{padding:16px 18px 18px}
+.compactLogHead{display:flex; align-items:center; justify-content:space-between; gap:12px}
+.compactLogTitle{font-size:.74rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--roseDeep)}
+.compactLogSub{font-size:.69rem; color:var(--inkSoft); margin-top:2px}
+.compactRow{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; margin-top:10px}
+
+input,button,textarea{font:inherit; border:none; outline:none}
+input[type="date"],input[type="number"],textarea{
+  min-height:40px; padding:0 12px; border-radius:8px;
+  color:var(--ink); background:#faf5f2;
+  border:1px solid rgba(100,60,80,.14); width:100%;
+}
+textarea{min-height:160px; padding:14px 15px; resize:vertical; line-height:1.6}
+input:focus, textarea:focus{
+  background:#fff; border-color:rgba(192,120,144,.4);
+  box-shadow:0 0 0 3px rgba(192,120,144,.09);
+}
+button{
+  min-height:40px; padding:0 16px; border-radius:8px; cursor:pointer;
+  transition:opacity .14s ease;
+}
+button:hover{opacity:.84}
+button:active{opacity:.72}
+.btnPrimary{background:var(--roseDeep); color:#fff; font-weight:700; letter-spacing:.02em}
+.btnGhost{background:transparent; color:var(--roseDeep); font-weight:700; border:1px solid rgba(138,77,101,.24)}
+.helper{margin-top:8px; font-size:.72rem; line-height:1.52; color:var(--inkSoft)}
+
+.statsPanel,.descriptionPanel,.goalCard,.journalPrompt,.journalEntryCard{padding:18px}
+.statsGrid{
+  display:grid; grid-template-columns:repeat(3,1fr);
+  margin-top:14px; border:1px solid var(--line); border-radius:10px; overflow:hidden;
+}
+.statsGrid > div{padding:14px 12px; border-right:1px solid var(--line)}
+.statsGrid > div:last-child{border-right:none}
+.statValue{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2rem; line-height:.9; font-weight:600; color:var(--ink);
+}
+.statLabel{margin-top:5px; font-size:.61rem; letter-spacing:.14em; text-transform:uppercase; color:var(--inkSoft)}
+.bodyText{margin-top:8px; font-size:.9rem; line-height:1.72; color:var(--inkSoft)}
+
+.progressBarWrap{
+  height:4px; background:rgba(100,60,80,.1); border-radius:2px;
+  margin-top:14px; overflow:hidden;
+}
+.progressBarFill{
+  height:100%; width:0%; background:var(--roseDeep);
+  border-radius:2px; transition:width .4s ease;
+}
+.currentGoalLine{
+  font-size:.72rem; color:var(--inkSoft); font-weight:600;
+  margin-bottom:4px;
+}
+.goalFields{display:grid; gap:12px; margin-top:14px}
+.goalRow{display:grid; gap:6px}
+.goalLabel{font-size:.73rem; color:var(--inkSoft); font-weight:600}
+.resetRow{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+.resetNote{margin-top:8px; font-size:.71rem; line-height:1.54; color:var(--inkSoft)}
+.bestWayBox{
+  margin-top:20px; padding:16px;
+  background:#fdf5f8; border:1px solid rgba(192,120,144,.14); border-radius:10px;
+}
+.bestWayBox .bodyText{margin-top:8px}
+
+.stopsUnlockedSummary{
+  margin-top:6px; font-size:.78rem; font-weight:600; color:var(--inkSoft);
+}
+.gridGallery{padding:12px; display:grid; grid-template-columns:repeat(6,1fr); gap:10px}
+.tile{
+  position:relative; min-height:170px; grid-column:span 3;
+  overflow:hidden; border-radius:12px;
+  border:1px solid rgba(100,60,80,.08); box-shadow:var(--shadowSoft); isolation:isolate;
+}
+.tile.large{grid-column:span 6; min-height:240px}
+.tile.tall{min-height:220px}
+.tile img,.tileFallback{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.tile img{opacity:.96; transition:transform .45s ease}
+.tile:hover img{transform:scale(1.03)}
+.tileFallback{
+  display:grid; place-items:center; text-align:center; padding:18px;
+  font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:rgba(40,18,28,.48);
+}
+.tile::after{
+  content:""; position:absolute; inset:0; z-index:1;
+  background:linear-gradient(180deg, rgba(20,8,14,.02), rgba(20,8,14,.56) 100%);
+}
+.tile.locked::after{background:linear-gradient(180deg, rgba(253,248,245,.26), rgba(40,18,28,.64) 100%)}
+.tile.locked img{opacity:.82; filter:blur(8px) saturate(.65) brightness(.92); transform:scale(1.06)}
+.tileContent{
+  position:relative; z-index:2; min-height:100%;
+  display:flex; flex-direction:column; justify-content:flex-end; padding:16px; color:#fff;
+}
+.tileTop{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px}
+.tileMiles{font-size:.61rem; text-transform:uppercase; letter-spacing:.18em; font-weight:700; color:#edd090}
+.tileStatus{
+  font-size:.57rem; text-transform:uppercase; letter-spacing:.13em; font-weight:700;
+  padding:6px 10px; border-radius:4px; background:rgba(255,255,255,.14);
+}
+.tile.locked .tileStatus{background:rgba(20,8,14,.3); color:rgba(255,255,255,.68)}
+.tileTitle{font-family:'Cormorant Garamond',serif; font-size:clamp(1.35rem,4.6vw,2rem); line-height:.98; font-weight:600}
+.tile.large .tileTitle{font-size:clamp(1.8rem,5.6vw,2.45rem)}
+.tileNote{margin-top:8px; max-width:16rem; font-size:.77rem; line-height:1.56; color:rgba(255,255,255,.82)}
+.tileProgressBar{
+  height:2px; background:rgba(255,255,255,.2); border-radius:1px; margin-top:12px; overflow:hidden;
+}
+.tileProgressFill{
+  height:100%; background:rgba(255,255,255,.78); border-radius:1px; transition:width .4s ease;
+}
+.tile.locked .tileProgressBar{background:rgba(255,255,255,.14)}
+.tile.locked .tileProgressFill{background:rgba(255,255,255,.46)}
+.tileBtn{
+  margin-top:10px; min-height:auto; padding:0 0 2px;
+  background:none; color:#fff; font-size:.67rem; text-transform:uppercase;
+  letter-spacing:.12em; font-weight:700; border-radius:0;
+  border-bottom:1px solid rgba(255,255,255,.36);
+}
+.tileBtn:hover{opacity:.7}
+.tileBtn[disabled]{opacity:.32; cursor:default}
+
+.bottomNav{
+  position:fixed; left:50%; bottom:0; transform:translateX(-50%);
+  width:min(100%, 500px); z-index:20;
+  background:#fff; border-top:1px solid rgba(100,60,80,.1);
+  padding:0 0 env(safe-area-inset-bottom);
+}
+.navBar{display:grid; grid-template-columns:repeat(3,1fr)}
+.navBtn{
+  min-height:62px; display:grid; place-items:center; gap:3px; padding:10px 6px;
+  background:transparent; border-radius:0; color:var(--inkSoft);
+}
+.navBtn.active{color:var(--roseDeep); box-shadow:inset 0 2px 0 var(--roseDeep)}
+.navIcon{font-size:1rem; line-height:1}
+.navLabel{font-size:.59rem; text-transform:uppercase; letter-spacing:.12em; font-weight:700}
+
+.modalBg{
+  position:fixed; inset:0; display:none; place-items:center; padding:16px;
+  background:rgba(20,8,14,.52); z-index:50;
+}
+.modalBg.show{display:grid}
+.modal{
+  width:min(100%,760px); overflow:hidden; border-radius:16px;
+  background:#fff; box-shadow:0 32px 80px rgba(20,8,14,.26);
+  animation:rise .22s ease both;
+}
+@keyframes rise{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modalMedia{position:relative; min-height:320px; overflow:hidden; background:#e8d4de}
+.modalMedia img,.modalFallback{position:absolute; inset:0; width:100%; height:100%}
+.modalMedia img{object-fit:cover; opacity:0; transition:opacity .3s ease}
+.modalMedia img.loaded{opacity:1}
+.modalFallback{display:grid; place-items:center; font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:rgba(40,18,28,.48)}
+.modalOverlay{position:absolute; inset:0; background:linear-gradient(180deg, rgba(20,8,14,.02), rgba(20,8,14,.64) 100%)}
+.modalCopy{position:absolute; left:0; right:0; bottom:0; z-index:2; color:#fff; padding:24px}
+.modalEyebrow{margin-bottom:8px; font-size:.63rem; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:#e8c070}
+.modalTitle{font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,7vw,2.8rem); line-height:.95; font-weight:600}
+.modalBottom{display:flex; justify-content:space-between; align-items:center; gap:14px; padding:18px 20px 20px}
+.modalText{max-width:30rem; font-size:.87rem; line-height:1.7; color:var(--inkSoft)}
+.modalText strong{color:var(--ink)}
+.closeBtn{background:var(--ink); color:#fff; font-weight:700; border-radius:8px; flex-shrink:0}
+
+
+.toast{
+  position:fixed; left:50%; bottom:calc(70px + env(safe-area-inset-bottom));
+  transform:translate(-50%,12px); max-width:calc(100vw - 32px);
+  padding:10px 18px; border-radius:6px;
+  background:rgba(20,8,14,.9); color:#fff; font-size:.79rem; font-weight:600;
+  box-shadow:0 6px 20px rgba(20,8,14,.16); opacity:0;
+  transition:opacity .22s ease, transform .22s ease;
+  pointer-events:none; z-index:70; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.toast.show{opacity:1; transform:translate(-50%,0)}
+
+@media (max-width:620px){
+  .compactRow{grid-template-columns:minmax(0,1fr) auto}
+  .gridGallery{grid-template-columns:repeat(2,1fr)}
+  .tile,.tile.large{grid-column:span 1}
+  .tile.large{min-height:220px}
+  .modalBottom{flex-direction:column; align-items:flex-start}
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Home -->
+  <section class="screen active" id="screen-home">
+    <div class="stack">
+
+      <div class="surface">
+        <div class="surfaceHead">
+          <div>
+            <div class="tag">Venice Beach route</div>
+            <div class="surfaceTitle">Stops along the coast</div>
+            <div class="surfaceCopy">Set your goal first, walk whenever you want, then add your step count at the end of the day.</div>
+          </div>
+          <div class="mapDate" id="mapDate"></div>
+        </div>
+        <div class="mapWrap">
+          <div class="mapShell">
+            <svg viewBox="0 0 1000 250" aria-label="Venice Beach Quest route">
+              <defs>
+                <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#c07890"></stop>
+                  <stop offset="100%" stop-color="#a87c3c"></stop>
+                </linearGradient>
+                <linearGradient id="oceanWave" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="rgba(181,219,239,.34)"></stop>
+                  <stop offset="100%" stop-color="rgba(181,219,239,.06)"></stop>
+                </linearGradient>
+                <filter id="routeGlow">
+                  <feGaussianBlur stdDeviation="3.5" result="blurred"></feGaussianBlur>
+                  <feMerge><feMergeNode in="blurred"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+                </filter>
+              </defs>
+              <g id="routeScenery">
+                <circle cx="98" cy="52" r="22" fill="rgba(255,220,160,.6)"></circle>
+                <path d="M0 202 C118 181,210 223,312 205 C415 187,520 226,625 206 C742 183,842 221,1000 197 L1000 250 L0 250 Z" fill="url(#oceanWave)"></path>
+                <path d="M140 170 l0 -32 M140 144 l-9 -10 M140 144 l9 -10 M140 158 l-9 -10 M140 158 l9 -10" stroke="rgba(105,130,98,.65)" stroke-width="2.8" stroke-linecap="round"></path>
+                <path d="M858 175 l0 -40 M858 147 l-10 -11 M858 147 l10 -11 M858 162 l-10 -11 M858 162 l10 -11" stroke="rgba(105,130,98,.65)" stroke-width="2.8" stroke-linecap="round"></path>
+              </g>
+              <path id="routeBase" fill="none" stroke="rgba(180,148,162,.3)" stroke-width="9" stroke-linecap="round"></path>
+              <path id="routeHalo" fill="none" stroke="rgba(192,120,144,.12)" stroke-width="22" stroke-linecap="round"></path>
+              <path id="routeProgress" fill="none" stroke="url(#routeGradient)" stroke-width="9" stroke-linecap="round" filter="url(#routeGlow)"></path>
+              <g id="routeMarkers"></g>
+              <g id="youMarker">
+                <circle r="13" fill="white" stroke="#8a4d65" stroke-width="2.4"></circle>
+                <circle r="5" fill="#c07890"></circle>
+                <text y="30" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" font-weight="700" fill="#8a4d65">you</text>
+              </g>
+            </svg>
+            <div class="legend">
+              <div class="legendItem"><span class="dot u"></span> unlocked</div>
+              <div class="legendItem"><span class="dot l"></span> locked</div>
+              <div class="legendItem"><span class="dot y"></span> you</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel compactLog">
+        <div class="compactLogHead">
+          <div>
+            <div class="compactLogTitle">Add steps</div>
+            <div class="compactLogSub">No GPS, no timer, no pressure.</div>
+          </div>
+        </div>
+        <div class="compactRow">
+          <input type="number" id="stepsInput" min="1" placeholder="Step count">
+          <button class="btnPrimary" id="logButton">Add</button>
+        </div>
+        <div class="helper" id="quickLogHelper">Add today's step count when you're done walking.</div>
+      </div>
+
+      <div class="panel statsPanel">
+        <div class="tag">Progress</div>
+        <div class="statsGrid">
+          <div><div class="statValue" id="heroMiles">0</div><div class="statLabel">Miles</div></div>
+          <div><div class="statValue" id="heroSteps">0</div><div class="statLabel">Steps</div></div>
+          <div><div class="statValue" id="heroUnlocked">0/6</div><div class="statLabel">Unlocked</div></div>
+        </div>
+        <div class="progressBarWrap">
+          <div class="progressBarFill" id="progressBarFill"></div>
+        </div>
+        <div class="helper" id="snapshotHelper">0% complete · set a step goal to begin</div>
+      </div>
+
+      <div class="panel descriptionPanel">
+        <div class="tag">About Venice Beach</div>
+        <div class="bodyText">Venice Beach is palms, murals, skaters, beach chaos, and a suspicious amount of confidence. This route moves through the places people actually picture first.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Stops -->
+  <section class="screen" id="screen-stops">
+    <div class="surface">
+      <div class="surfaceHead">
+        <div>
+          <div class="tag">Landmarks</div>
+          <div class="surfaceTitle">Venice stops</div>
+          <div class="stopsUnlockedSummary" id="stopsUnlockedSummary">0 of 6 unlocked</div>
+        </div>
+      </div>
+      <div class="gridGallery" id="stopsWrap"></div>
+    </div>
+  </section>
+
+  <!-- Goals -->
+  <section class="screen" id="screen-goals">
+    <div class="surface">
+      <div class="surfaceHead">
+        <div>
+          <div class="tag">Goals</div>
+          <div class="surfaceTitle">Pick a target that fits.</div>
+          <div class="surfaceCopy">Set a goal, move through it at your own pace.</div>
+        </div>
+      </div>
+      <div class="goalCard">
+        <div class="currentGoalLine" id="currentGoalLine"></div>
+        <div class="goalFields">
+          <div class="goalRow">
+            <label class="goalLabel" for="goalStepsInput">Total steps to complete the route</label>
+            <input type="number" id="goalStepsInput" min="1" placeholder="20000">
+          </div>
+        </div>
+        <div class="resetRow">
+          <button class="btnPrimary" id="saveGoalsButton">Set goal</button>
+        </div>
+        <div class="bestWayBox">
+          <div class="tag">Best way to use it</div>
+          <p class="bodyText">Set your goal first, walk whenever you want, then add your step count once at the end of the day. The route moves forward based on the pace you chose.</p>
+        </div>
+        <div class="resetRow" style="margin-top:8px">
+          <button class="btnGhost" id="resetProgressButton">Reset quest</button>
+        </div>
+        <div class="resetNote">Clears all steps and unlocks. Your goal stays.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Nav -->
+  <div class="bottomNav">
+    <div class="navBar">
+      <button class="navBtn active" data-screen="home"><div class="navIcon">✦</div><div class="navLabel">Home</div></button>
+      <button class="navBtn" data-screen="stops"><div class="navIcon">◌</div><div class="navLabel">Stops</div></button>
+      <button class="navBtn" data-screen="goals"><div class="navIcon">◎</div><div class="navLabel">Goals</div></button>
+    </div>
+  </div>
+</div>
+
+<!-- Postcard modal -->
+<div class="modalBg" id="modalBg" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modalMedia">
+      <div class="modalFallback" id="modalFallback">Venice postcard</div>
+      <img id="modalImage" alt="">
+      <div class="modalOverlay"></div>
+      <div class="modalCopy">
+        <div class="modalEyebrow" id="modalEyebrow"></div>
+        <div class="modalTitle" id="modalTitle"></div>
+      </div>
+    </div>
+    <div class="modalBottom">
+      <div class="modalText" id="modalText"></div>
+      <button class="closeBtn" id="closeModalButton">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY        = 'vbq_steps_clean';
+const GOALS_KEY          = 'vbq_goal_steps_clean';
+const DEFAULT_GOAL_STEPS = 20000;
+const ROUTE_TOTAL_MILES  = 10.0;
+
+// Visual positions along the SVG route (start + 6 stops)
+const ROUTE_POINTS = [
+  [36,  138],
+  [165, 106],
+  [318,  76],
+  [462, 108],
+  [582, 140],
+  [786,  96],
+  [968,  76]
+];
+
+const STOPS = [
+  {
+    id: 1, name: 'Venice Sign', short: 'Sign', emoji: '✦',
+    note: 'The actual Venice sign over Windward. A proper entrance instead of vague beach-adjacent nonsense.',
+    souvenir: 'The sign that officially starts the whole show.',
+    image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Venice%20Beach%20Sign.jpg',
+    fallback: 'linear-gradient(145deg,#f8dfe9,#f4c8da)'
+  },
+  {
+    id: 2, name: 'Muscle Beach', short: 'Muscle Beach', emoji: '💪',
+    note: 'Outdoor gym mythology with a lot of sunlight and almost no humility.',
+    souvenir: 'Muscle Beach in its famously unbothered form.',
+    image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Muscle%20Beach%20Venice.jpg',
+    fallback: 'linear-gradient(145deg,#f1deeb,#f5dac9)'
+  },
+  {
+    id: 3, name: 'Venice Skatepark', short: 'Skatepark', emoji: '🛹',
+    note: 'Concrete bowls on the sand. Confidence everywhere. Restraint nowhere.',
+    souvenir: 'The famous skate bowls by the beach.',
+    image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Venice%20Beach%20Skatepark%20P4070293.jpg',
+    fallback: 'linear-gradient(145deg,#f4dce8,#d9e9f6)'
+  },
+  {
+    id: 4, name: 'Venice Art Walls', short: 'Art Walls', emoji: '🎨',
+    note: 'Legally sanctioned chaos, which still leaves plenty of chaos to enjoy.',
+    souvenir: 'The art walls, unlocked properly.',
+    image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Venice%20Beach%20Graffiti%20Wall.jpg',
+    fallback: 'linear-gradient(145deg,#f6dbeb,#e6bfd6)'
+  },
+  {
+    id: 5, name: 'Venice Boardwalk', short: 'Boardwalk', emoji: '☼',
+    note: 'The actual boardwalk. Busy, iconic, and constitutionally incapable of understatement.',
+    souvenir: 'The boardwalk itself, in all its loud little glory.',
+    image: 'https://commons.wikimedia.org/wiki/Special:FilePath/The%20Venice%20Beach%20Boardwalk%2C%20Los%20Angeles.jpg',
+    fallback: 'linear-gradient(145deg,#f8d7e6,#f7e6f0)'
+  },
+  {
+    id: 6, name: 'Venice Pier', short: 'Pier', emoji: '🎣',
+    note: 'Long horizon, salt air, and the sort of view that can improve a person out of spite.',
+    souvenir: 'The pier reaching into the Pacific. The finish.',
+    image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Venice%20Fishing%20Pier-02.jpg',
+    fallback: 'linear-gradient(145deg,#e1eff7,#f4deea)'
+  }
+];
+
+</script>
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+const state = {
+  steps:       loadSteps(),
+  goals:       loadGoals(),
+  prevUnlocked: new Set()
+};
+
+// Toast queue — prevents overlapping celebrations
+let toastQueue    = [];
+let toastBusy     = false;
+let toastTimer    = null;
+
+// ── Storage ───────────────────────────────────────────────────────────────────
+function loadSteps() {
+  return Math.max(0, parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10));
+}
+function saveSteps() {
+  localStorage.setItem(STORAGE_KEY, String(state.steps));
+}
+function loadGoals() {
+  const n = parseInt(localStorage.getItem(GOALS_KEY) || '0', 10);
+  return { totalSteps: n > 0 ? n : DEFAULT_GOAL_STEPS };
+}
+function saveGoals() {
+  localStorage.setItem(GOALS_KEY, String(state.goals.totalSteps));
+}
+
+// ── Unlock logic ──────────────────────────────────────────────────────────────
+function getStopTarget(index) {
+  return Math.round(state.goals.totalSteps * (index + 1) / STOPS.length);
+}
+function stopUnlocked(index) {
+  return state.steps >= getStopTarget(index);
+}
+function getUnlockedCount() {
+  return STOPS.filter((_, i) => stopUnlocked(i)).length;
+}
+
+// ── Progress ──────────────────────────────────────────────────────────────────
+function getProgressFraction() {
+  return Math.min(1, state.steps / Math.max(1, state.goals.totalSteps));
+}
+function getTotalMiles() {
+  return +(getProgressFraction() * ROUTE_TOTAL_MILES).toFixed(1);
+}
+function getPercentComplete() {
+  return Math.min(100, Math.round(getProgressFraction() * 100));
+}
+
+// ── SVG helpers ───────────────────────────────────────────────────────────────
+function buildSmoothPath(points) {
+  if (!points.length) return '';
+  let d = `M ${points[0][0]},${points[0][1]}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const [cx, cy] = points[i], [nx, ny] = points[i + 1];
+    const mx = (cx + nx) / 2;
+    d += ` C ${mx},${cy} ${mx},${ny} ${nx},${ny}`;
+  }
+  return d;
+}
+
+function routePointAtFraction(fraction) {
+  const n   = ROUTE_POINTS.length - 1;
+  const pos = Math.min(fraction * n, n);
+  const idx = Math.min(Math.floor(pos), n - 1);
+  const t   = pos - idx;
+  const [x1, y1] = ROUTE_POINTS[idx];
+  const [x2, y2] = ROUTE_POINTS[idx + 1] || ROUTE_POINTS[idx];
+  return [x1 + t * (x2 - x1), y1 + t * (y2 - y1)];
+}
+
+function buildProgressPath(fraction) {
+  const n   = ROUTE_POINTS.length - 1;
+  const pos = Math.min(fraction * n, n);
+  const idx = Math.min(Math.floor(pos), n - 1);
+  const t   = pos - idx;
+  const pts = [...ROUTE_POINTS.slice(0, idx + 1)];
+  const [x1, y1] = ROUTE_POINTS[idx];
+  const [x2, y2] = ROUTE_POINTS[idx + 1] || ROUTE_POINTS[idx];
+  const end = [x1 + t * (x2 - x1), y1 + t * (y2 - y1)];
+  const last = pts[pts.length - 1];
+  if (!last || last[0] !== end[0] || last[1] !== end[1]) pts.push(end);
+  return buildSmoothPath(pts);
+}
+
+function svgNode(tag, attrs = {}) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+  return el;
+}
+
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+const heroMiles       = document.getElementById('heroMiles');
+const heroSteps       = document.getElementById('heroSteps');
+const heroUnlocked    = document.getElementById('heroUnlocked');
+const snapshotHelper  = document.getElementById('snapshotHelper');
+const quickLogHelper  = document.getElementById('quickLogHelper');
+const progressBarFill = document.getElementById('progressBarFill');
+const mapDate         = document.getElementById('mapDate');
+const currentGoalLine = document.getElementById('currentGoalLine');
+
+const routeBase     = document.getElementById('routeBase');
+const routeHalo     = document.getElementById('routeHalo');
+const routeProgress = document.getElementById('routeProgress');
+const routeMarkers  = document.getElementById('routeMarkers');
+const youMarker     = document.getElementById('youMarker');
+
+const stepsInput            = document.getElementById('stepsInput');
+const logButton             = document.getElementById('logButton');
+const goalStepsInput        = document.getElementById('goalStepsInput');
+const saveGoalsButton       = document.getElementById('saveGoalsButton');
+const resetProgressButton   = document.getElementById('resetProgressButton');
+const stopsWrap             = document.getElementById('stopsWrap');
+const stopsUnlockedSummary  = document.getElementById('stopsUnlockedSummary');
+
+const toast            = document.getElementById('toast');
+const modalBg          = document.getElementById('modalBg');
+const modalImage       = document.getElementById('modalImage');
+const modalFallback    = document.getElementById('modalFallback');
+const modalEyebrow     = document.getElementById('modalEyebrow');
+const modalTitle       = document.getElementById('modalTitle');
+const modalText        = document.getElementById('modalText');
+const closeModalButton = document.getElementById('closeModalButton');
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderHome() {
+  const pct      = getPercentComplete();
+  const miles    = getTotalMiles();
+  const unlocked = getUnlockedCount();
+
+  heroMiles.textContent    = miles;
+  heroSteps.textContent    = state.steps.toLocaleString();
+  heroUnlocked.textContent = `${unlocked}/6`;
+
+  progressBarFill.style.width = `${pct}%`;
+
+  const goalK = (state.goals.totalSteps / 1000).toFixed(0);
+  snapshotHelper.textContent = pct < 100
+    ? `${pct}% complete · ${state.steps.toLocaleString()} of ${state.goals.totalSteps.toLocaleString()} steps`
+    : `Quest complete · ${state.steps.toLocaleString()} steps · ${miles} miles`;
+
+  quickLogHelper.textContent = state.goals.totalSteps === DEFAULT_GOAL_STEPS && !localStorage.getItem(GOALS_KEY)
+    ? 'Set a step goal on the Goals screen first.'
+    : `Goal: ${state.goals.totalSteps.toLocaleString()} steps total.`;
+}
+
+function renderGoals() {
+  goalStepsInput.value = state.goals.totalSteps;
+  currentGoalLine.textContent = `Current goal: ${state.goals.totalSteps.toLocaleString()} steps`;
+}
+
+function renderRoute() {
+  const frac     = getProgressFraction();
+  const fullPath = buildSmoothPath(ROUTE_POINTS);
+  const progPath = buildProgressPath(frac);
+
+  routeBase.setAttribute('d', fullPath);
+  routeHalo.setAttribute('d', progPath);
+  routeProgress.setAttribute('d', progPath);
+  routeMarkers.innerHTML = '';
+
+  STOPS.forEach((stop, i) => {
+    const [x, y]   = ROUTE_POINTS[i + 1];
+    const unlocked = stopUnlocked(i);
+    const g        = svgNode('g', { transform: `translate(${x},${y})` });
+
+    g.appendChild(svgNode('circle', {
+      r: '17',
+      fill:           unlocked ? 'rgba(255,252,254,.98)' : 'rgba(248,238,244,.95)',
+      stroke:         unlocked ? '#c07890' : '#d0b0c0',
+      'stroke-width': unlocked ? '2.2' : '1.4'
+    }));
+
+    const icon = svgNode('text', { 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': '11' });
+    icon.textContent = stop.emoji;
+
+    const lbl = svgNode('text', { 'text-anchor': 'middle', y: '32', class: 'routeLabel' });
+    lbl.textContent = stop.short;
+
+    g.append(icon, lbl);
+    routeMarkers.appendChild(g);
+  });
+
+  const [x, y] = routePointAtFraction(frac);
+  youMarker.setAttribute('transform', `translate(${x},${y})`);
+}
+
+function renderStops() {
+  const unlocked = getUnlockedCount();
+  stopsUnlockedSummary.textContent = `${unlocked} of 6 unlocked`;
+
+  stopsWrap.innerHTML = STOPS.map((stop, i) => {
+    const isUnlocked  = stopUnlocked(i);
+    const target      = getStopTarget(i);
+    const tilePct     = Math.min(100, Math.round(state.steps / target * 100));
+    const sizeClass   = i === 0 || i === 4 ? 'large' : i === 2 ? 'tall' : '';
+    return `
+      <article class="tile ${sizeClass} ${isUnlocked ? 'unlocked' : 'locked'}">
+        <div class="tileFallback" style="background:${stop.fallback}">${stop.name}</div>
+        <img src="${stop.image}" alt="${stop.name}" onload="this.style.opacity=1" onerror="this.style.display='none'">
+        <div class="tileContent">
+          <div class="tileTop">
+            <div class="tileMiles">${target.toLocaleString()} steps · stop ${String(stop.id).padStart(2, '0')}</div>
+            <div class="tileStatus">${isUnlocked ? 'Unlocked' : 'Locked'}</div>
+          </div>
+          <div class="tileTitle">${stop.name}</div>
+          <div class="tileNote">${stop.note}</div>
+          <div class="tileProgressBar"><div class="tileProgressFill" style="width:${tilePct}%"></div></div>
+          <button class="tileBtn" data-postcard="${stop.id}" ${isUnlocked ? '' : 'disabled'}>View postcard</button>
+        </div>
+      </article>`;
+  }).join('');
+}
+
+function renderAll() {
+  renderHome();
+  renderGoals();
+  renderRoute();
+  renderStops();
+}
+
+// ── Toast queue ───────────────────────────────────────────────────────────────
+function queueToast(message) {
+  toastQueue.push(message);
+  if (!toastBusy) drainToastQueue();
+}
+
+function drainToastQueue() {
+  if (!toastQueue.length) { toastBusy = false; return; }
+  toastBusy = true;
+  toast.textContent = toastQueue.shift();
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(drainToastQueue, 320);
+  }, 2600);
+}
+
+// ── Celebrations ──────────────────────────────────────────────────────────────
+function checkCelebrations(prevSteps) {
+  const now = state.steps;
+  STOPS.forEach((stop, i) => {
+    const target = getStopTarget(i);
+    if (prevSteps < target && now >= target) {
+      queueToast(`Photo unlocked · ${stop.name} is now open.`);
+    }
+  });
+  if (prevSteps < state.goals.totalSteps && now >= state.goals.totalSteps) {
+    queueToast('Goal met · Quest complete.');
+  }
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+function logSteps() {
+  const n = parseInt(stepsInput.value, 10);
+  if (!n || n < 1) { queueToast('Enter a real step count.'); return; }
+  const prev   = state.steps;
+  state.steps += n;
+  saveSteps();
+  stepsInput.value = '';
+  renderAll();
+  queueToast(`${n.toLocaleString()} steps added.`);
+  checkCelebrations(prev);
+}
+
+function saveGoalsAction() {
+  const n = parseInt(goalStepsInput.value, 10);
+  if (!n || n < 1) { queueToast('Enter a real step count.'); return; }
+  state.goals.totalSteps = n;
+  saveGoals();
+  renderAll();
+  queueToast('Goal set.');
+}
+
+function resetProgress() {
+  state.steps = 0;
+  saveSteps();
+  renderAll();
+  queueToast('Quest reset.');
+}
+
+// ── Postcard modal ────────────────────────────────────────────────────────────
+function openPostcard(id) {
+  const idx  = STOPS.findIndex(s => s.id === Number(id));
+  const stop = STOPS[idx];
+  if (!stop || !stopUnlocked(idx)) return;
+
+  modalEyebrow.textContent      = `Stop ${stop.id} of ${STOPS.length} · photo unlocked`;
+  modalTitle.textContent        = stop.name;
+  modalText.innerHTML           = `<strong>${stop.souvenir}</strong><br>${stop.note}<br><span style="display:inline-block;margin-top:8px;font-size:.78rem;color:#6b5060;">Photo source: Wikimedia Commons</span>`;
+  modalFallback.textContent     = stop.name;
+  modalFallback.style.background = stop.fallback;
+  modalImage.classList.remove('loaded');
+  modalImage.style.display = '';
+  modalImage.alt   = stop.name;
+  modalImage.onload  = () => modalImage.classList.add('loaded');
+  modalImage.onerror = () => { modalImage.style.display = 'none'; };
+  modalImage.src = stop.image;
+  modalBg.classList.add('show');
+  modalBg.setAttribute('aria-hidden', 'false');
+}
+
+function closeModal() {
+  modalBg.classList.remove('show');
+  modalBg.setAttribute('aria-hidden', 'true');
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.toggle('active', s.id === `screen-${name}`);
+  });
+  document.querySelectorAll('.navBtn').forEach(b => {
+    b.classList.toggle('active', b.dataset.screen === name);
+  });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+function init() {
+  mapDate.textContent = new Date().toLocaleDateString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+  });
+
+  renderAll();
+
+  logButton.addEventListener('click', logSteps);
+  saveGoalsButton.addEventListener('click', saveGoalsAction);
+  resetProgressButton.addEventListener('click', resetProgress);
+  stepsInput.addEventListener('keydown', e => { if (e.key === 'Enter') logSteps(); });
+
+  document.addEventListener('click', e => {
+    const pid = e.target.getAttribute('data-postcard');
+    if (pid) openPostcard(pid);
+    const nav = e.target.closest('.navBtn');
+    if (nav) switchScreen(nav.dataset.screen);
+  });
+
+  closeModalButton.addEventListener('click', closeModal);
+  modalBg.addEventListener('click', e => { if (e.target === modalBg) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+
+</script>
+</body>
+</html>
