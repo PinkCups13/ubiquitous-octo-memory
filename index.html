@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Venice Beach Quest</title>
-<meta name="theme-color" content="#f8e9f0" />
-<meta name="description" content="Venice Beach Quest — an editorial walking app with real Venice landmark unlocks." />
+<meta name="theme-color" content="#fdf8f5" />
+<meta name="description" content="Venice Beach Quest — a trust-based walking app with real Venice landmark unlocks." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,6 +14,7 @@
 <body>
 <div class="app">
 
+  <!-- Home -->
   <section class="screen active" id="screen-home">
     <div class="stack">
       <div class="surface">
@@ -27,38 +28,37 @@
         </div>
         <div class="mapWrap">
           <div class="mapShell">
-            <svg viewBox="0 0 1000 250" aria-label="Illustrated Venice Beach Quest route">
+            <svg viewBox="0 0 1000 250" aria-label="Venice Beach Quest route">
               <defs>
                 <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#d47d9b"></stop>
-                  <stop offset="100%" stop-color="#d1a26e"></stop>
+                  <stop offset="0%" stop-color="#c07890"></stop>
+                  <stop offset="100%" stop-color="#a87c3c"></stop>
                 </linearGradient>
                 <linearGradient id="oceanWave" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="rgba(181,219,239,.38)"></stop>
-                  <stop offset="100%" stop-color="rgba(181,219,239,.08)"></stop>
+                  <stop offset="0%" stop-color="rgba(181,219,239,.34)"></stop>
+                  <stop offset="100%" stop-color="rgba(181,219,239,.06)"></stop>
                 </linearGradient>
                 <filter id="routeGlow">
-                  <feGaussianBlur stdDeviation="4" result="blurred"></feGaussianBlur>
+                  <feGaussianBlur stdDeviation="3.5" result="blurred"></feGaussianBlur>
                   <feMerge><feMergeNode in="blurred"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
                 </filter>
               </defs>
 
               <g id="routeScenery">
-                <circle cx="98" cy="52" r="24" fill="rgba(255,223,167,.68)"></circle>
-                <path d="M0 202 C118 181, 210 223, 312 205 C415 187, 520 226, 625 206 C742 183, 842 221, 1000 197 L1000 250 L0 250 Z" fill="url(#oceanWave)"></path>
-                <path d="M140 170 l0 -34 M140 143 l-10 -10 M140 143 l10 -10 M140 158 l-10 -11 M140 158 l10 -11" stroke="rgba(105,130,98,.7)" stroke-width="3" stroke-linecap="round"></path>
-                <path d="M852 175 l0 -42 M852 145 l-11 -12 M852 145 l11 -12 M852 162 l-11 -12 M852 162 l11 -12" stroke="rgba(105,130,98,.7)" stroke-width="3" stroke-linecap="round"></path>
-                <path d="M770 72 q12 6 24 0 q12 -6 24 0 q12 6 24 0" fill="none" stroke="rgba(255,255,255,.74)" stroke-width="3" stroke-linecap="round"></path>
+                <circle cx="98" cy="52" r="22" fill="rgba(255,220,160,.6)"></circle>
+                <path d="M0 202 C118 181,210 223,312 205 C415 187,520 226,625 206 C742 183,842 221,1000 197 L1000 250 L0 250 Z" fill="url(#oceanWave)"></path>
+                <path d="M140 170 l0 -32 M140 144 l-9 -10 M140 144 l9 -10 M140 158 l-9 -10 M140 158 l9 -10" stroke="rgba(105,130,98,.65)" stroke-width="2.8" stroke-linecap="round"></path>
+                <path d="M858 175 l0 -40 M858 147 l-10 -11 M858 147 l10 -11 M858 162 l-10 -11 M858 162 l10 -11" stroke="rgba(105,130,98,.65)" stroke-width="2.8" stroke-linecap="round"></path>
               </g>
 
-              <path id="routeBase" fill="none" stroke="rgba(182,153,166,.36)" stroke-width="10" stroke-linecap="round"></path>
-              <path id="routeHalo" fill="none" stroke="rgba(212,125,155,.14)" stroke-width="24" stroke-linecap="round"></path>
-              <path id="routeProgress" fill="none" stroke="url(#routeGradient)" stroke-width="10" stroke-linecap="round" filter="url(#routeGlow)"></path>
+              <path id="routeBase" fill="none" stroke="rgba(180,148,162,.3)" stroke-width="9" stroke-linecap="round"></path>
+              <path id="routeHalo" fill="none" stroke="rgba(192,120,144,.12)" stroke-width="22" stroke-linecap="round"></path>
+              <path id="routeProgress" fill="none" stroke="url(#routeGradient)" stroke-width="9" stroke-linecap="round" filter="url(#routeGlow)"></path>
               <g id="routeMarkers"></g>
               <g id="youMarker">
-                <circle r="14" fill="white" stroke="#9f5570" stroke-width="2.6"></circle>
-                <circle r="5.5" fill="#d47d9b"></circle>
-                <text y="32" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10" font-weight="700" fill="#9f5570">you</text>
+                <circle r="13" fill="white" stroke="#8a4d65" stroke-width="2.4"></circle>
+                <circle r="5" fill="#c07890"></circle>
+                <text y="30" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" font-weight="700" fill="#8a4d65">you</text>
               </g>
             </svg>
             <div class="legend">
@@ -66,7 +66,7 @@
               <div class="legendItem"><span class="dot l"></span> locked</div>
               <div class="legendItem"><span class="dot y"></span> you</div>
             </div>
-            <div class="routeStatLine" id="routeStatLine"><strong>0.00 miles</strong> travelled · <strong>0</strong> steps logged · <strong>0/10</strong> stops unlocked</div>
+            <div class="routeStatLine" id="routeStatLine"><strong>0.00 miles</strong> travelled · <strong>0</strong> steps logged · <strong>0/6</strong> stops unlocked</div>
           </div>
         </div>
       </div>
@@ -75,7 +75,7 @@
         <div class="compactLogHead">
           <div>
             <div class="compactLogTitle">Log steps</div>
-            <div class="compactLogSub">Small, useful, and not acting like the headline.</div>
+            <div class="compactLogSub">Add your step count at the end of each day.</div>
           </div>
         </div>
         <div class="compactRow">
@@ -87,111 +87,81 @@
       </div>
 
       <div class="panel statsPanel">
-        <div class="tag">Stats</div>
+        <div class="tag">Progress</div>
         <div class="statsGrid">
           <div><div class="statValue" id="heroMiles">0</div><div class="statLabel">Miles</div></div>
           <div><div class="statValue" id="heroSteps">0</div><div class="statLabel">Steps</div></div>
-          <div><div class="statValue" id="heroUnlocked">0/10</div><div class="statLabel">Unlocked</div></div>
+          <div><div class="statValue" id="heroUnlocked">0/6</div><div class="statLabel">Unlocked</div></div>
         </div>
-        <div class="helper" id="snapshotHelper">0% complete · 0 total steps · 10 mile goal</div>
+        <div class="helper" id="snapshotHelper">0% complete · set a step goal to begin</div>
       </div>
 
       <div class="panel descriptionPanel">
         <div class="tag">About Venice Beach</div>
-        <div class="bodyText">Venice Beach is part boardwalk theater, part skate mythology, part sunset postcard, and part beautifully overconfident Los Angeles daydream. The idea here is simple: move through real places, unlock actual landmarks, and let the route feel a little cinematic instead of pretending exercise has to be dull.</div>
+        <div class="bodyText">Venice Beach is part boardwalk theater, part skate mythology, part sunset postcard, and part beautifully overconfident Los Angeles daydream. Move through real places, unlock actual landmarks, and let the route feel a little cinematic.</div>
       </div>
     </div>
   </section>
 
+  <!-- Stops -->
   <section class="screen" id="screen-stops">
     <div class="surface">
       <div class="surfaceHead">
         <div>
           <div class="tag">Landmarks</div>
-          <div class="surfaceTitle">Actual Venice stops</div>
-          <div class="surfaceCopy">Blurred before unlock, sharp after. Real images, not decorative lies.</div>
+          <div class="surfaceTitle">Six Venice stops</div>
+          <div class="surfaceCopy">Blurred before unlock, sharp after. Real places, not decorative lies.</div>
         </div>
       </div>
       <div class="gridGallery" id="stopsWrap"></div>
     </div>
   </section>
 
+  <!-- Goals -->
   <section class="screen" id="screen-goals">
     <div class="surface">
       <div class="surfaceHead">
         <div>
           <div class="tag">Goals</div>
-          <div class="surfaceTitle">Set it once. Change when needed.</div>
-          <div class="surfaceCopy">Quiet little ambitions. No need to parade them around every time you log steps.</div>
+          <div class="surfaceTitle">Pick a target that fits.</div>
+          <div class="surfaceCopy">Short goal means one big day. Longer goal means a week of wandering.</div>
         </div>
       </div>
       <div class="goalCard">
         <div class="goalFields">
           <div class="goalRow">
-            <label class="goalLabel" for="dailyGoalInput">Daily step goal</label>
-            <input type="number" id="dailyGoalInput" min="1" placeholder="8000">
-          </div>
-          <div class="goalRow">
-            <label class="goalLabel" for="mileGoalInput">Overall mile goal</label>
-            <input type="number" id="mileGoalInput" min="1" step="0.1" placeholder="10">
+            <label class="goalLabel" for="goalStepsInput">Total steps to complete the route</label>
+            <input type="number" id="goalStepsInput" min="1" placeholder="20000">
           </div>
         </div>
         <div class="resetRow">
-          <button class="btnPrimary" id="saveGoalsButton">Save goals</button>
-          <button class="btnGhost" id="resetProgressButton">Reset progress</button>
+          <button class="btnPrimary" id="saveGoalsButton">Set goal</button>
         </div>
-        <div class="resetNote">Reset progress clears logged steps, unlocks, and saved journal entries. It keeps your goals, because repeating basic setup is annoying.</div>
+
+        <div class="bestWayBox">
+          <div class="tag">Best way to use it</div>
+          <p class="bodyText">Walk as many steps as you want each day. Add your count at the end. The route moves, landmarks unlock, and Venice shows up at your pace. No GPS. No timers. Just steps and the city.</p>
+        </div>
+
+        <div class="resetRow" style="margin-top:8px">
+          <button class="btnGhost" id="resetProgressButton">Reset quest</button>
+        </div>
+        <div class="resetNote">Clears all steps and unlocks. Your goal stays.</div>
       </div>
     </div>
   </section>
 
-  <section class="screen" id="screen-journal">
-    <div class="surface">
-      <div class="surfaceHead">
-        <div>
-          <div class="tag">Journal</div>
-          <div class="surfaceTitle">Field notes after the walk</div>
-          <div class="surfaceCopy">Prompt first. Writing second. Step history underneath where it belongs.</div>
-        </div>
-      </div>
-
-      <div class="journalPrompt">
-        <div class="tag">Today's prompt</div>
-        <div class="promptText" id="journalPromptText">What looked better in motion than it did in your head?</div>
-      </div>
-
-      <div class="journalEntryCard">
-        <div class="tag">Write it down</div>
-        <div class="helper">One note for today is enough. This app is not your memoir editor.</div>
-        <div style="margin-top:12px;">
-          <textarea id="journalText" placeholder="Write something small, specific, and not fake."></textarea>
-        </div>
-        <div class="resetRow" style="margin-top:12px;">
-          <button class="btnPrimary" id="saveJournalButton">Save entry</button>
-        </div>
-        <div class="savedEntry" id="savedEntryCard" style="display:none;">
-          <div class="savedLabel">Saved for today</div>
-          <div class="savedText" id="savedEntryText"></div>
-        </div>
-      </div>
-
-      <div class="journalEntryCard">
-        <div class="tag">Step history</div>
-        <div class="journalList" id="logBody"></div>
-      </div>
-    </div>
-  </section>
-
+  <!-- Nav -->
   <div class="bottomNav">
     <div class="navBar">
       <button class="navBtn active" data-screen="home"><div class="navIcon">✦</div><div class="navLabel">Home</div></button>
       <button class="navBtn" data-screen="stops"><div class="navIcon">◌</div><div class="navLabel">Stops</div></button>
       <button class="navBtn" data-screen="goals"><div class="navIcon">◎</div><div class="navLabel">Goals</div></button>
-      <button class="navBtn" data-screen="journal"><div class="navIcon">☰</div><div class="navLabel">Journal</div></button>
     </div>
   </div>
 </div>
 
+<!-- Postcard modal -->
 <div class="modalBg" id="modalBg" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modalMedia">
@@ -207,6 +177,16 @@
       <div class="modalText" id="modalText"></div>
       <button class="closeBtn" id="closeModalButton">Close</button>
     </div>
+  </div>
+</div>
+
+<!-- Completion overlay -->
+<div class="completionBg" id="completionBg">
+  <div class="completionCard">
+    <div class="completionEyebrow">Quest complete</div>
+    <div class="completionTitle">You walked Venice Beach.</div>
+    <div class="completionSub">Every landmark, at your own pace.</div>
+    <button class="btnPrimary" id="completionClose">Close</button>
   </div>
 </div>
 
