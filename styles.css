@@ -72,12 +72,20 @@ body{
 
 .mapWrap{padding:0 12px 14px}
 .mapShell{
+  position:relative;
   min-height:296px; padding:16px 10px 14px;
   border-radius:12px; overflow:hidden;
   border:1px solid rgba(100,60,80,.08);
   background:
     linear-gradient(180deg, rgba(253,248,245,.52), rgba(253,248,245,.16)),
     url('https://commons.wikimedia.org/wiki/Special:FilePath/Los%20Angeles%20-%20Venice%20Canal%20Historic%20District%2001.jpg') center/cover no-repeat;
+}
+.progressChip{
+  position:absolute; top:12px; right:12px; z-index:2;
+  background:rgba(255,255,255,.88); border:1px solid rgba(100,60,80,.12);
+  border-radius:999px; padding:5px 12px;
+  font-size:.63rem; font-weight:700; letter-spacing:.04em; color:var(--roseDeep);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
 }
 svg{display:block; width:100%; min-width:520px; overflow:visible}
 .legend{display:flex; gap:14px; flex-wrap:wrap; padding:10px 6px 0; font-size:.69rem; color:var(--inkSoft)}
@@ -97,7 +105,7 @@ svg{display:block; width:100%; min-width:520px; overflow:visible}
 .compactLogHead{display:flex; align-items:center; justify-content:space-between; gap:12px}
 .compactLogTitle{font-size:.74rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--roseDeep)}
 .compactLogSub{font-size:.69rem; color:var(--inkSoft); margin-top:2px}
-.compactRow{display:grid; grid-template-columns:120px minmax(0,1fr) auto; gap:8px; margin-top:10px}
+.compactRow{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; margin-top:10px}
 
 input,button,textarea{font:inherit; border:none; outline:none}
 input[type="date"],input[type="number"],textarea{
@@ -134,6 +142,18 @@ button:active{opacity:.72}
 .statLabel{margin-top:5px; font-size:.61rem; letter-spacing:.14em; text-transform:uppercase; color:var(--inkSoft)}
 .bodyText{margin-top:8px; font-size:.9rem; line-height:1.72; color:var(--inkSoft)}
 
+.progressBarWrap{
+  height:4px; background:rgba(100,60,80,.1); border-radius:2px;
+  margin-top:14px; overflow:hidden;
+}
+.progressBarFill{
+  height:100%; width:0%; background:var(--roseDeep);
+  border-radius:2px; transition:width .4s ease;
+}
+.currentGoalLine{
+  font-size:.72rem; color:var(--inkSoft); font-weight:600;
+  margin-bottom:4px;
+}
 .goalFields{display:grid; gap:12px; margin-top:14px}
 .goalRow{display:grid; gap:6px}
 .goalLabel{font-size:.73rem; color:var(--inkSoft); font-weight:600}
@@ -229,26 +249,6 @@ button:active{opacity:.72}
 .modalText strong{color:var(--ink)}
 .closeBtn{background:var(--ink); color:#fff; font-weight:700; border-radius:8px; flex-shrink:0}
 
-.completionBg{
-  position:fixed; inset:0; display:none; place-items:center; padding:24px;
-  background:rgba(20,8,14,.58); z-index:60;
-}
-.completionBg.show{display:grid}
-.completionCard{
-  width:min(100%,380px); padding:40px 32px 36px; border-radius:20px;
-  background:#fff; box-shadow:0 40px 100px rgba(20,8,14,.28);
-  text-align:center; animation:rise .28s ease both;
-}
-.completionEyebrow{
-  font-size:.63rem; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
-  color:var(--gold); margin-bottom:16px;
-}
-.completionTitle{
-  font-family:'Cormorant Garamond',serif; font-size:2.6rem; line-height:.96;
-  font-weight:600; color:var(--ink); margin-bottom:12px;
-}
-.completionSub{font-size:.88rem; line-height:1.6; color:var(--inkSoft); margin-bottom:28px}
-.completionCard .btnPrimary{width:100%; justify-content:center}
 
 .toast{
   position:fixed; left:50%; bottom:calc(70px + env(safe-area-inset-bottom));
@@ -262,7 +262,7 @@ button:active{opacity:.72}
 .toast.show{opacity:1; transform:translate(-50%,0)}
 
 @media (max-width:620px){
-  .compactRow{grid-template-columns:1fr}
+  .compactRow{grid-template-columns:minmax(0,1fr) auto}
   .gridGallery{grid-template-columns:repeat(2,1fr)}
   .tile,.tile.large{grid-column:span 1}
   .tile.large{min-height:220px}
