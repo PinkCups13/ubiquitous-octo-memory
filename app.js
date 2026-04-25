@@ -1,417 +1,344 @@
+// ── State ─────────────────────────────────────────────────────────────────────
 const state = {
-  log: loadLog(),
-  goals: loadGoals(),
-  journal: loadJournal(),
-  toastTimer: null,
-  unlockedIds: new Set()
+  steps:       loadSteps(),
+  goals:       loadGoals(),
+  prevUnlocked: new Set()
 };
 
-const heroMiles = document.getElementById('heroMiles');
-const heroSteps = document.getElementById('heroSteps');
-const heroUnlocked = document.getElementById('heroUnlocked');
-const snapshotHelper = document.getElementById('snapshotHelper');
-const quickLogHelper = document.getElementById('quickLogHelper');
-const mapDate = document.getElementById('mapDate');
+// Toast queue — prevents overlapping celebrations
+let toastQueue    = [];
+let toastBusy     = false;
+let toastTimer    = null;
 
-const routeBase = document.getElementById('routeBase');
-const routeHalo = document.getElementById('routeHalo');
+// ── Storage ───────────────────────────────────────────────────────────────────
+function loadSteps() {
+  return Math.max(0, parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10));
+}
+function saveSteps() {
+  localStorage.setItem(STORAGE_KEY, String(state.steps));
+}
+function loadGoals() {
+  const n = parseInt(localStorage.getItem(GOALS_KEY) || '0', 10);
+  return { totalSteps: n > 0 ? n : DEFAULT_GOAL_STEPS };
+}
+function saveGoals() {
+  localStorage.setItem(GOALS_KEY, String(state.goals.totalSteps));
+}
+
+// ── Unlock logic ──────────────────────────────────────────────────────────────
+function getStopTarget(index) {
+  return Math.round(state.goals.totalSteps * (index + 1) / STOPS.length);
+}
+function stopUnlocked(index) {
+  return state.steps >= getStopTarget(index);
+}
+function getUnlockedCount() {
+  return STOPS.filter((_, i) => stopUnlocked(i)).length;
+}
+
+// ── Progress ──────────────────────────────────────────────────────────────────
+function getProgressFraction() {
+  return Math.min(1, state.steps / Math.max(1, state.goals.totalSteps));
+}
+function getTotalMiles() {
+  return +(getProgressFraction() * ROUTE_TOTAL_MILES).toFixed(1);
+}
+function getPercentComplete() {
+  return Math.min(100, Math.round(getProgressFraction() * 100));
+}
+
+// ── SVG helpers ───────────────────────────────────────────────────────────────
+function buildSmoothPath(points) {
+  if (!points.length) return '';
+  let d = `M ${points[0][0]},${points[0][1]}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const [cx, cy] = points[i], [nx, ny] = points[i + 1];
+    const mx = (cx + nx) / 2;
+    d += ` C ${mx},${cy} ${mx},${ny} ${nx},${ny}`;
+  }
+  return d;
+}
+
+function routePointAtFraction(fraction) {
+  const n   = ROUTE_POINTS.length - 1;
+  const pos = Math.min(fraction * n, n);
+  const idx = Math.min(Math.floor(pos), n - 1);
+  const t   = pos - idx;
+  const [x1, y1] = ROUTE_POINTS[idx];
+  const [x2, y2] = ROUTE_POINTS[idx + 1] || ROUTE_POINTS[idx];
+  return [x1 + t * (x2 - x1), y1 + t * (y2 - y1)];
+}
+
+function buildProgressPath(fraction) {
+  const n   = ROUTE_POINTS.length - 1;
+  const pos = Math.min(fraction * n, n);
+  const idx = Math.min(Math.floor(pos), n - 1);
+  const t   = pos - idx;
+  const pts = [...ROUTE_POINTS.slice(0, idx + 1)];
+  const [x1, y1] = ROUTE_POINTS[idx];
+  const [x2, y2] = ROUTE_POINTS[idx + 1] || ROUTE_POINTS[idx];
+  const end = [x1 + t * (x2 - x1), y1 + t * (y2 - y1)];
+  const last = pts[pts.length - 1];
+  if (!last || last[0] !== end[0] || last[1] !== end[1]) pts.push(end);
+  return buildSmoothPath(pts);
+}
+
+function svgNode(tag, attrs = {}) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+  return el;
+}
+
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+const heroMiles       = document.getElementById('heroMiles');
+const heroSteps       = document.getElementById('heroSteps');
+const heroUnlocked    = document.getElementById('heroUnlocked');
+const snapshotHelper  = document.getElementById('snapshotHelper');
+const quickLogHelper  = document.getElementById('quickLogHelper');
+const progressBarFill = document.getElementById('progressBarFill');
+const mapDate         = document.getElementById('mapDate');
+const currentGoalLine = document.getElementById('currentGoalLine');
+
+const routeBase     = document.getElementById('routeBase');
+const routeHalo     = document.getElementById('routeHalo');
 const routeProgress = document.getElementById('routeProgress');
-const routeMarkers = document.getElementById('routeMarkers');
-const youMarker = document.getElementById('youMarker');
-const routeStatLine = document.getElementById('routeStatLine');
+const routeMarkers  = document.getElementById('routeMarkers');
+const youMarker     = document.getElementById('youMarker');
 
-const dateInput = document.getElementById('dateInput');
-const stepsInput = document.getElementById('stepsInput');
-const logButton = document.getElementById('logButton');
+const stepsInput            = document.getElementById('stepsInput');
+const logButton             = document.getElementById('logButton');
+const goalStepsInput        = document.getElementById('goalStepsInput');
+const saveGoalsButton       = document.getElementById('saveGoalsButton');
+const resetProgressButton   = document.getElementById('resetProgressButton');
+const stopsWrap             = document.getElementById('stopsWrap');
+const stopsUnlockedSummary  = document.getElementById('stopsUnlockedSummary');
 
-const dailyGoalInput = document.getElementById('dailyGoalInput');
-const mileGoalInput = document.getElementById('mileGoalInput');
-const saveGoalsButton = document.getElementById('saveGoalsButton');
-const resetProgressButton = document.getElementById('resetProgressButton');
-
-const stopsWrap = document.getElementById('stopsWrap');
-const logBody = document.getElementById('logBody');
-
-const journalPromptText = document.getElementById('journalPromptText');
-const journalText = document.getElementById('journalText');
-const saveJournalButton = document.getElementById('saveJournalButton');
-const savedEntryCard = document.getElementById('savedEntryCard');
-const savedEntryText = document.getElementById('savedEntryText');
-
-const toast = document.getElementById('toast');
-const modalBg = document.getElementById('modalBg');
-const modalImage = document.getElementById('modalImage');
-const modalFallback = document.getElementById('modalFallback');
-const modalEyebrow = document.getElementById('modalEyebrow');
-const modalTitle = document.getElementById('modalTitle');
-const modalText = document.getElementById('modalText');
+const toast            = document.getElementById('toast');
+const modalBg          = document.getElementById('modalBg');
+const modalImage       = document.getElementById('modalImage');
+const modalFallback    = document.getElementById('modalFallback');
+const modalEyebrow     = document.getElementById('modalEyebrow');
+const modalTitle       = document.getElementById('modalTitle');
+const modalText        = document.getElementById('modalText');
 const closeModalButton = document.getElementById('closeModalButton');
 
-function loadLog(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
-  } catch { return []; }
-}
-function saveLog(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.log)); }
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderHome() {
+  const pct      = getPercentComplete();
+  const miles    = getTotalMiles();
+  const unlocked = getUnlockedCount();
 
-function loadGoals(){
-  try{
-    const raw = localStorage.getItem(GOALS_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    return {
-      dailySteps: Number(parsed?.dailySteps) > 0 ? Number(parsed.dailySteps) : DEFAULT_DAILY_GOAL,
-      mileGoal: Number(parsed?.mileGoal) > 0 ? Number(parsed.mileGoal) : DEFAULT_MILE_GOAL
-    };
-  } catch {
-    return { dailySteps: DEFAULT_DAILY_GOAL, mileGoal: DEFAULT_MILE_GOAL };
-  }
-}
-function saveGoals(){ localStorage.setItem(GOALS_KEY, JSON.stringify(state.goals)); }
+  heroMiles.textContent    = miles;
+  heroSteps.textContent    = state.steps.toLocaleString();
+  heroUnlocked.textContent = `${unlocked}/6`;
 
-function loadJournal(){
-  try{
-    const raw = localStorage.getItem(JOURNAL_KEY);
-    const parsed = raw ? JSON.parse(raw) : {};
-    return parsed && typeof parsed === 'object' ? parsed : {};
-  } catch { return {}; }
-}
-function saveJournal(){ localStorage.setItem(JOURNAL_KEY, JSON.stringify(state.journal)); }
+  progressBarFill.style.width = `${pct}%`;
 
-function todayKey(){ return new Date().toISOString().split('T')[0]; }
-function getPromptForToday(){
-  const d = new Date();
-  const index = (d.getFullYear() * 372 + (d.getMonth()+1) * 31 + d.getDate()) % JOURNAL_PROMPTS.length;
-  return JOURNAL_PROMPTS[index];
-}
-function getTotalSteps(){ return state.log.reduce((sum, e) => sum + Number(e.steps || 0), 0); }
-function getTotalMiles(){ return +(getTotalSteps() / STEPS_PER_MILE).toFixed(2); }
-function getUnlockedStops(){ const m = getTotalMiles(); return STOPS.filter(s => m >= s.miles); }
-function getPercentComplete(){
-  const goal = Math.max(0.1, state.goals.mileGoal);
-  return Math.min(100, Math.round((getTotalMiles() / goal) * 100));
+  const goalK = (state.goals.totalSteps / 1000).toFixed(0);
+  snapshotHelper.textContent = pct < 100
+    ? `${pct}% complete · ${state.steps.toLocaleString()} of ${state.goals.totalSteps.toLocaleString()} steps`
+    : `Quest complete · ${state.steps.toLocaleString()} steps · ${miles} miles`;
+
+  quickLogHelper.textContent = state.goals.totalSteps === DEFAULT_GOAL_STEPS && !localStorage.getItem(GOALS_KEY)
+    ? 'Set a step goal on the Goals screen first.'
+    : `Goal: ${state.goals.totalSteps.toLocaleString()} steps total.`;
 }
 
-function buildSmoothPath(points){
-  if(!points.length) return '';
-  let path = `M ${points[0][0]},${points[0][1]}`;
-  for(let i=0;i<points.length-1;i++){
-    const current = points[i], next = points[i+1];
-    const midX = (current[0] + next[0]) / 2;
-    path += ` C ${midX},${current[1]} ${midX},${next[1]} ${next[0]},${next[1]}`;
-  }
-  return path;
+function renderGoals() {
+  goalStepsInput.value = state.goals.totalSteps;
+  currentGoalLine.textContent = `Current goal: ${state.goals.totalSteps.toLocaleString()} steps`;
 }
 
-function interpolatePoint(miles){
-  const goalCap = Math.max(...ROUTE_MILES);
-  const clamped = Math.max(0, Math.min(miles, goalCap));
-  for(let i=0;i<ROUTE_MILES.length-1;i++){
-    if(clamped >= ROUTE_MILES[i] && clamped <= ROUTE_MILES[i+1]){
-      const ratio = (clamped - ROUTE_MILES[i]) / (ROUTE_MILES[i+1] - ROUTE_MILES[i]);
-      const x = ROUTE_POINTS[i][0] + ratio * (ROUTE_POINTS[i+1][0] - ROUTE_POINTS[i][0]);
-      const y = ROUTE_POINTS[i][1] + ratio * (ROUTE_POINTS[i+1][1] - ROUTE_POINTS[i][1]);
-      return [x,y];
-    }
-  }
-  return ROUTE_POINTS[ROUTE_POINTS.length-1];
-}
-
-function buildProgressPath(miles){
-  const goalCap = Math.max(...ROUTE_MILES);
-  const clamped = Math.max(0, Math.min(miles, goalCap));
-  let segment = 0;
-  for(let i=0;i<ROUTE_MILES.length-1;i++){
-    if(clamped <= ROUTE_MILES[i+1]){ segment = i; break; }
-    segment = i + 1;
-  }
-  const points = [...ROUTE_POINTS.slice(0, segment+1)];
-  const endPoint = interpolatePoint(clamped);
-  const last = points[points.length-1];
-  if(!last || last[0] !== endPoint[0] || last[1] !== endPoint[1]) points.push(endPoint);
-  return buildSmoothPath(points);
-}
-
-function createSvgNode(tag, attrs={}){
-  const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
-  Object.entries(attrs).forEach(([k,v]) => node.setAttribute(k,v));
-  return node;
-}
-
-function renderHome(){
-  const steps = getTotalSteps();
-  const miles = getTotalMiles();
-  const unlocked = getUnlockedStops().length;
-  const pct = getPercentComplete();
-
-  heroMiles.textContent = miles;
-  heroSteps.textContent = steps.toLocaleString();
-  heroUnlocked.textContent = `${unlocked}/10`;
-  snapshotHelper.textContent = `${pct}% complete · ${steps.toLocaleString()} total steps · ${state.goals.mileGoal} mile goal`;
-
-  const selectedDate = dateInput.value || todayKey();
-  const existing = state.log.find(entry => entry.date === selectedDate);
-  if(existing){
-    quickLogHelper.textContent = `Selected day already has ${Number(existing.steps).toLocaleString()} steps logged.`;
-  } else {
-    quickLogHelper.textContent = `Daily goal: ${state.goals.dailySteps.toLocaleString()} steps.`;
-  }
-}
-
-function renderGoals(){
-  dailyGoalInput.value = state.goals.dailySteps;
-  mileGoalInput.value = state.goals.mileGoal;
-}
-
-function renderRoutePreview(){
-  const miles = getTotalMiles();
+function renderRoute() {
+  const frac     = getProgressFraction();
   const fullPath = buildSmoothPath(ROUTE_POINTS);
-  const progressPath = buildProgressPath(miles);
+  const progPath = buildProgressPath(frac);
+
   routeBase.setAttribute('d', fullPath);
-  routeHalo.setAttribute('d', progressPath);
-  routeProgress.setAttribute('d', progressPath);
+  routeHalo.setAttribute('d', progPath);
+  routeProgress.setAttribute('d', progPath);
   routeMarkers.innerHTML = '';
 
-  STOPS.forEach((stop, index) => {
-    const [x, y] = ROUTE_POINTS[index + 1];
-    const unlocked = miles >= stop.miles;
-    const g = createSvgNode('g', { transform: `translate(${x},${y})` });
+  STOPS.forEach((stop, i) => {
+    const [x, y]   = ROUTE_POINTS[i + 1];
+    const unlocked = stopUnlocked(i);
+    const g        = svgNode('g', { transform: `translate(${x},${y})` });
 
-    const circle = createSvgNode('circle', {
-      r:'18',
-      fill: unlocked ? 'rgba(255,252,253,.98)' : 'rgba(247,238,242,.95)',
-      stroke: unlocked ? '#d47d9b' : '#d8bfca',
-      'stroke-width': unlocked ? '2.2' : '1.5'
-    });
-    const icon = createSvgNode('text', {
-      'text-anchor':'middle',
-      'dominant-baseline':'central',
-      'font-size':'12'
-    });
-    icon.textContent = stop.emoji || String(stop.id);
+    g.appendChild(svgNode('circle', {
+      r: '17',
+      fill:           unlocked ? 'rgba(255,252,254,.98)' : 'rgba(248,238,244,.95)',
+      stroke:         unlocked ? '#c07890' : '#d0b0c0',
+      'stroke-width': unlocked ? '2.2' : '1.4'
+    }));
 
-    const milesText = createSvgNode('text', {
-      'text-anchor':'middle',
-      y:'31',
-      'font-family':'Plus Jakarta Sans, sans-serif',
-      'font-size':'8.6',
-      'font-weight':'700',
-      fill: unlocked ? '#9f5570' : '#9f7b8d'
-    });
-    milesText.textContent = `${stop.miles} mi`;
+    const icon = svgNode('text', { 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': '11' });
+    icon.textContent = stop.emoji;
 
-    const label = createSvgNode('text', {
-      'text-anchor':'middle',
-      y:'48',
-      'class':'routeLabel'
-    });
-    label.textContent = stop.short || stop.name;
+    const lbl = svgNode('text', { 'text-anchor': 'middle', y: '32', class: 'routeLabel' });
+    lbl.textContent = stop.short;
 
-    g.append(circle, icon, milesText, label);
+    g.append(icon, lbl);
     routeMarkers.appendChild(g);
   });
 
-  const [x, y] = interpolatePoint(miles);
+  const [x, y] = routePointAtFraction(frac);
   youMarker.setAttribute('transform', `translate(${x},${y})`);
-
-  routeStatLine.innerHTML = `<strong>${miles.toFixed(2)} miles</strong> travelled · <strong>${getTotalSteps().toLocaleString()}</strong> steps logged · <strong>${getUnlockedStops().length}/10</strong> stops unlocked`;
 }
 
-function renderStops(){
-  const miles = getTotalMiles();
-  const nowUnlocked = new Set(getUnlockedStops().map(stop => stop.id));
-  for(const id of nowUnlocked){
-    if(!state.unlockedIds.has(id)){
-      const stop = STOPS.find(s => s.id === id);
-      if(stop) showToast(`Unlocked: ${stop.name}`);
-    }
-  }
-  state.unlockedIds = nowUnlocked;
+function renderStops() {
+  const unlocked = getUnlockedCount();
+  stopsUnlockedSummary.textContent = `${unlocked} of 6 unlocked`;
 
-  stopsWrap.innerHTML = STOPS.map((stop, index) => {
-    const unlocked = miles >= stop.miles;
-    const sizeClass = index === 0 || index === 5 || index === 9 ? 'large' : (index === 2 || index === 7 ? 'tall' : '');
+  stopsWrap.innerHTML = STOPS.map((stop, i) => {
+    const isUnlocked  = stopUnlocked(i);
+    const target      = getStopTarget(i);
+    const tilePct     = Math.min(100, Math.round(state.steps / target * 100));
+    const sizeClass   = i === 0 || i === 4 ? 'large' : i === 2 ? 'tall' : '';
     return `
-      <article class="tile ${sizeClass} ${unlocked ? 'unlocked' : 'locked'}">
+      <article class="tile ${sizeClass} ${isUnlocked ? 'unlocked' : 'locked'}">
         <div class="tileFallback" style="background:${stop.fallback}">${stop.name}</div>
         <img src="${stop.image}" alt="${stop.name}" onload="this.style.opacity=1" onerror="this.style.display='none'">
         <div class="tileContent">
           <div class="tileTop">
-            <div class="tileMiles">${stop.miles} miles · stop ${String(stop.id).padStart(2,'0')}</div>
-            <div class="tileStatus">${unlocked ? 'Unlocked' : 'Locked'}</div>
+            <div class="tileMiles">${target.toLocaleString()} steps · stop ${String(stop.id).padStart(2, '0')}</div>
+            <div class="tileStatus">${isUnlocked ? 'Unlocked' : 'Locked'}</div>
           </div>
           <div class="tileTitle">${stop.name}</div>
           <div class="tileNote">${stop.note}</div>
-          <button class="tileBtn" data-postcard="${stop.id}" ${unlocked ? '' : 'disabled'}>View postcard</button>
+          <div class="tileProgressBar"><div class="tileProgressFill" style="width:${tilePct}%"></div></div>
+          <button class="tileBtn" data-postcard="${stop.id}" ${isUnlocked ? '' : 'disabled'}>View postcard</button>
         </div>
-      </article>
-    `;
+      </article>`;
   }).join('');
 }
 
-function renderJournal(){
-  const today = todayKey();
-  journalPromptText.textContent = getPromptForToday();
-  journalText.value = state.journal[today] || '';
-  if(state.journal[today]){
-    savedEntryCard.style.display = '';
-    savedEntryText.textContent = state.journal[today];
-  } else {
-    savedEntryCard.style.display = 'none';
-    savedEntryText.textContent = '';
-  }
-
-  if(!state.log.length){
-    logBody.innerHTML = '<div class="journalEntry"><div class="journalDate">No entries yet</div><div class="journalSteps">Start the quest</div><div class="journalMiles">0.00 mi</div><div></div></div>';
-    return;
-  }
-  logBody.innerHTML = state.log.map(entry => `
-    <div class="journalEntry">
-      <div class="journalDate">${entry.date}</div>
-      <div class="journalSteps">${Number(entry.steps).toLocaleString()} steps</div>
-      <div class="journalMiles">${(Number(entry.steps)/STEPS_PER_MILE).toFixed(2)} mi</div>
-      <button class="deleteBtn" aria-label="Delete ${entry.date}" data-delete="${entry.date}">×</button>
-    </div>
-  `).join('');
-}
-
-function renderAll(){
+function renderAll() {
   renderHome();
   renderGoals();
-  renderRoutePreview();
+  renderRoute();
   renderStops();
-  renderJournal();
 }
 
-function logSteps(){
-  const date = dateInput.value;
-  const steps = Number.parseInt(stepsInput.value, 10);
-  if(!date || !steps || steps < 1){
-    showToast('Enter a date and a real step count.');
-    return;
+// ── Toast queue ───────────────────────────────────────────────────────────────
+function queueToast(message) {
+  toastQueue.push(message);
+  if (!toastBusy) drainToastQueue();
+}
+
+function drainToastQueue() {
+  if (!toastQueue.length) { toastBusy = false; return; }
+  toastBusy = true;
+  toast.textContent = toastQueue.shift();
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(drainToastQueue, 320);
+  }, 2600);
+}
+
+// ── Celebrations ──────────────────────────────────────────────────────────────
+function checkCelebrations(prevSteps) {
+  const now = state.steps;
+  STOPS.forEach((stop, i) => {
+    const target = getStopTarget(i);
+    if (prevSteps < target && now >= target) {
+      queueToast(`Photo unlocked · ${stop.name} is now open.`);
+    }
+  });
+  if (prevSteps < state.goals.totalSteps && now >= state.goals.totalSteps) {
+    queueToast('Goal met · Quest complete.');
   }
-  const existing = state.log.find(entry => entry.date === date);
-  if(existing) existing.steps += steps;
-  else state.log.push({date, steps});
-  state.log.sort((a,b) => b.date.localeCompare(a.date));
-  saveLog();
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+function logSteps() {
+  const n = parseInt(stepsInput.value, 10);
+  if (!n || n < 1) { queueToast('Enter a real step count.'); return; }
+  const prev   = state.steps;
+  state.steps += n;
+  saveSteps();
   stepsInput.value = '';
   renderAll();
-  showToast(`Logged ${steps.toLocaleString()} steps.`);
+  queueToast(`${n.toLocaleString()} steps added.`);
+  checkCelebrations(prev);
 }
 
-function saveGoalsAction(){
-  const dailySteps = Number.parseInt(dailyGoalInput.value, 10);
-  const mileGoal = Number.parseFloat(mileGoalInput.value);
-  if(!dailySteps || dailySteps < 1 || !mileGoal || mileGoal <= 0){
-    showToast('Enter real goal numbers.');
-    return;
-  }
-  state.goals.dailySteps = dailySteps;
-  state.goals.mileGoal = +mileGoal.toFixed(1).replace(/\.0$/, '');
+function saveGoalsAction() {
+  const n = parseInt(goalStepsInput.value, 10);
+  if (!n || n < 1) { queueToast('Enter a real step count.'); return; }
+  state.goals.totalSteps = n;
   saveGoals();
   renderAll();
-  showToast('Goals saved.');
+  queueToast('Goal set.');
 }
 
-function resetProgress(){
-  state.log = [];
-  state.journal = {};
-  saveLog();
-  saveJournal();
+function resetProgress() {
+  state.steps = 0;
+  saveSteps();
   renderAll();
-  showToast('Progress reset.');
+  queueToast('Quest reset.');
 }
 
-function saveJournalEntry(){
-  const text = journalText.value.trim();
-  const today = todayKey();
-  if(!text){
-    delete state.journal[today];
-    saveJournal();
-    renderJournal();
-    showToast('Today’s journal entry cleared.');
-    return;
-  }
-  state.journal[today] = text;
-  saveJournal();
-  renderJournal();
-  showToast('Journal entry saved.');
-}
+// ── Postcard modal ────────────────────────────────────────────────────────────
+function openPostcard(id) {
+  const idx  = STOPS.findIndex(s => s.id === Number(id));
+  const stop = STOPS[idx];
+  if (!stop || !stopUnlocked(idx)) return;
 
-function deleteEntry(date){
-  state.log = state.log.filter(entry => entry.date !== date);
-  saveLog();
-  renderAll();
-  showToast('Entry removed. Order restored.');
-}
-
-function openPostcard(id){
-  const stop = STOPS.find(s => s.id === Number(id));
-  if(!stop) return;
-  modalEyebrow.textContent = `${stop.miles} miles · real landmark postcard`;
-  modalTitle.textContent = stop.name;
-  modalText.innerHTML = `<strong>${stop.souvenir}</strong><br>${stop.note}<br><span style="display:inline-block;margin-top:8px;font-size:.8rem;color:#7d5f6c;">Photo source: Wikimedia Commons</span>`;
-  modalFallback.textContent = stop.name;
+  modalEyebrow.textContent      = `Stop ${stop.id} of ${STOPS.length} · photo unlocked`;
+  modalTitle.textContent        = stop.name;
+  modalText.innerHTML           = `<strong>${stop.souvenir}</strong><br>${stop.note}<br><span style="display:inline-block;margin-top:8px;font-size:.78rem;color:#6b5060;">Photo source: Wikimedia Commons</span>`;
+  modalFallback.textContent     = stop.name;
   modalFallback.style.background = stop.fallback;
   modalImage.classList.remove('loaded');
   modalImage.style.display = '';
-  modalImage.alt = stop.name;
-  modalImage.onload = () => modalImage.classList.add('loaded');
+  modalImage.alt   = stop.name;
+  modalImage.onload  = () => modalImage.classList.add('loaded');
   modalImage.onerror = () => { modalImage.style.display = 'none'; };
   modalImage.src = stop.image;
   modalBg.classList.add('show');
   modalBg.setAttribute('aria-hidden', 'false');
 }
 
-function closeModal(){
+function closeModal() {
   modalBg.classList.remove('show');
   modalBg.setAttribute('aria-hidden', 'true');
 }
 
-function showToast(message){
-  toast.textContent = message;
-  toast.classList.add('show');
-  clearTimeout(state.toastTimer);
-  state.toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
-}
-
-function switchScreen(name){
-  document.querySelectorAll('.screen').forEach(screen => {
-    screen.classList.toggle('active', screen.id === `screen-${name}`);
+// ── Navigation ────────────────────────────────────────────────────────────────
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.toggle('active', s.id === `screen-${name}`);
   });
-  document.querySelectorAll('.navBtn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.screen === name);
+  document.querySelectorAll('.navBtn').forEach(b => {
+    b.classList.toggle('active', b.dataset.screen === name);
   });
 }
 
-function init(){
-  const today = new Date();
-  dateInput.value = today.toISOString().split('T')[0];
-  mapDate.textContent = today.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
-  state.unlockedIds = new Set(getUnlockedStops().map(stop => stop.id));
+// ── Init ──────────────────────────────────────────────────────────────────────
+function init() {
+  mapDate.textContent = new Date().toLocaleDateString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+  });
+
   renderAll();
 
   logButton.addEventListener('click', logSteps);
   saveGoalsButton.addEventListener('click', saveGoalsAction);
   resetProgressButton.addEventListener('click', resetProgress);
-  saveJournalButton.addEventListener('click', saveJournalEntry);
+  stepsInput.addEventListener('keydown', e => { if (e.key === 'Enter') logSteps(); });
 
-  stepsInput.addEventListener('keydown', event => { if(event.key === 'Enter') logSteps(); });
-
-  document.addEventListener('click', event => {
-    const deleteDate = event.target.getAttribute('data-delete');
-    if(deleteDate) deleteEntry(deleteDate);
-    const postcardId = event.target.getAttribute('data-postcard');
-    if(postcardId) openPostcard(postcardId);
-    const nav = event.target.closest('.navBtn');
-    if(nav) switchScreen(nav.dataset.screen);
+  document.addEventListener('click', e => {
+    const pid = e.target.getAttribute('data-postcard');
+    if (pid) openPostcard(pid);
+    const nav = e.target.closest('.navBtn');
+    if (nav) switchScreen(nav.dataset.screen);
   });
 
   closeModalButton.addEventListener('click', closeModal);
-  modalBg.addEventListener('click', event => { if(event.target === modalBg) closeModal(); });
-  document.addEventListener('keydown', event => { if(event.key === 'Escape') closeModal(); });
+  modalBg.addEventListener('click', e => { if (e.target === modalBg) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 }
 
 document.addEventListener('DOMContentLoaded', init);
