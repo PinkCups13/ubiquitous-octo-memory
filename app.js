@@ -162,22 +162,32 @@ function renderRoute() {
   STOPS.forEach((stop, i) => {
     const [x, y]   = ROUTE_POINTS[i + 1];
     const unlocked = stopUnlocked(i);
+    const stopMiles = (ROUTE_TOTAL_MILES * (i + 1) / STOPS.length).toFixed(1);
     const g        = svgNode('g', { transform: `translate(${x},${y})` });
 
     g.appendChild(svgNode('circle', {
       r: '17',
-      fill:           unlocked ? 'rgba(255,252,254,.98)' : 'rgba(248,238,244,.95)',
+      fill:           unlocked ? 'rgba(255,252,254,.98)' : 'rgba(248,238,244,.92)',
       stroke:         unlocked ? '#c07890' : '#d0b0c0',
       'stroke-width': unlocked ? '2.2' : '1.4'
     }));
 
-    const icon = svgNode('text', { 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': '11' });
-    icon.textContent = stop.emoji;
+    g.appendChild(svgNode('path', {
+      d:                  stop.icon,
+      fill:               'none',
+      stroke:             unlocked ? '#8a4d65' : '#c4a0b4',
+      'stroke-width':     '1.8',
+      'stroke-linecap':   'round',
+      'stroke-linejoin':  'round'
+    }));
 
-    const lbl = svgNode('text', { 'text-anchor': 'middle', y: '32', class: 'routeLabel' });
-    lbl.textContent = stop.short;
+    const milesLbl = svgNode('text', { 'text-anchor': 'middle', y: '31', class: 'routeLabel routeMiles' });
+    milesLbl.textContent = stopMiles + ' mi';
 
-    g.append(icon, lbl);
+    const nameLbl = svgNode('text', { 'text-anchor': 'middle', y: '42', class: 'routeLabel' });
+    nameLbl.textContent = stop.short;
+
+    g.append(milesLbl, nameLbl);
     routeMarkers.appendChild(g);
   });
 

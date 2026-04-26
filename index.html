@@ -29,6 +29,7 @@
         </div>
         <div class="mapWrap">
           <div class="mapShell">
+            <div class="mapRouteLabel">Your Route</div>
             <svg viewBox="0 0 1000 250" aria-label="Venice Beach Quest route">
               <defs>
                 <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -55,11 +56,13 @@
               <path id="routeProgress" fill="none" stroke="url(#routeGradient)" stroke-width="9" stroke-linecap="round" filter="url(#routeGlow)"></path>
               <g id="routeMarkers"></g>
               <g id="youMarker">
-                <circle r="13" fill="white" stroke="#8a4d65" stroke-width="2.4"></circle>
-                <circle r="5" fill="#c07890"></circle>
-                <text y="30" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" font-weight="700" fill="#8a4d65">you</text>
+                <circle r="16" fill="rgba(255,255,255,.96)" stroke="#c07890" stroke-width="1.8"></circle>
+                <circle r="9" fill="none" stroke="#c07890" stroke-width="1.5"></circle>
+                <circle r="4" fill="#8a4d65"></circle>
+                <text y="33" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9" font-weight="700" fill="#8a4d65" letter-spacing="0.08em">YOU</text>
               </g>
             </svg>
+            <div class="mapStopsBadge">◎ 6 stops</div>
             <div class="legend">
               <div class="legendItem"><span class="dot u"></span> unlocked</div>
               <div class="legendItem"><span class="dot l"></span> locked</div>

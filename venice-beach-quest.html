@@ -103,8 +103,8 @@ body{
   min-height:270px; padding:14px 8px 12px;
   border-radius:16px; overflow:hidden;
   background:
-    linear-gradient(180deg,rgba(253,248,245,.22) 0%,rgba(250,238,248,.14) 100%),
-    url('https://commons.wikimedia.org/wiki/Special:FilePath/Los%20Angeles%20-%20Venice%20Canal%20Historic%20District%2001.jpg') center/cover no-repeat;
+    linear-gradient(180deg,rgba(255,220,232,.38) 0%,rgba(255,220,232,.12) 45%,rgba(255,220,232,.12) 70%,rgba(255,220,232,.38) 100%),
+    url('https://commons.wikimedia.org/wiki/Special:FilePath/The%20Venice%20Beach%20Boardwalk%2C%20Los%20Angeles.jpg') center/cover no-repeat;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);
 }
 svg{display:block; width:100%; min-width:520px; overflow:visible}
@@ -117,8 +117,22 @@ svg{display:block; width:100%; min-width:520px; overflow:visible}
 .routeStatLine{padding:8px 8px 0; font-size:.71rem; line-height:1.5; color:var(--inkSoft)}
 .routeStatLine strong{color:var(--roseDeep); font-weight:700}
 .routeLabel{
-  font-size:7.5px; fill:#8a6878;
-  font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; letter-spacing:.05em;
+  font-size:8px; fill:#7a5868;
+  font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; letter-spacing:.04em;
+}
+.routeMiles{fill:var(--rose); font-size:7px; font-weight:600}
+.mapRouteLabel{
+  position:absolute; top:12px; left:14px; z-index:2;
+  font-size:.56rem; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--roseDeep);
+  text-shadow:0 1px 4px rgba(255,255,255,.6);
+}
+.mapStopsBadge{
+  position:absolute; bottom:60px; left:50%; transform:translateX(-50%); z-index:2;
+  background:rgba(255,255,255,.82); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  border:1px solid rgba(192,120,144,.15); border-radius:99px;
+  padding:5px 14px; font-size:.63rem; font-weight:700; color:var(--roseDeep);
+  white-space:nowrap; pointer-events:none;
 }
 
 .compactLog{padding:18px 20px 20px}
@@ -365,6 +379,7 @@ button:active{opacity:.74; transform:scale(.98)}
         </div>
         <div class="mapWrap">
           <div class="mapShell">
+            <div class="mapRouteLabel">Your Route</div>
             <svg viewBox="0 0 1000 250" aria-label="Venice Beach Quest route">
               <defs>
                 <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -391,11 +406,13 @@ button:active{opacity:.74; transform:scale(.98)}
               <path id="routeProgress" fill="none" stroke="url(#routeGradient)" stroke-width="9" stroke-linecap="round" filter="url(#routeGlow)"></path>
               <g id="routeMarkers"></g>
               <g id="youMarker">
-                <circle r="13" fill="white" stroke="#8a4d65" stroke-width="2.4"></circle>
-                <circle r="5" fill="#c07890"></circle>
-                <text y="30" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" font-weight="700" fill="#8a4d65">you</text>
+                <circle r="16" fill="rgba(255,255,255,.96)" stroke="#c07890" stroke-width="1.8"></circle>
+                <circle r="9" fill="none" stroke="#c07890" stroke-width="1.5"></circle>
+                <circle r="4" fill="#8a4d65"></circle>
+                <text y="33" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9" font-weight="700" fill="#8a4d65" letter-spacing="0.08em">YOU</text>
               </g>
             </svg>
+            <div class="mapStopsBadge">◎ 6 stops</div>
             <div class="legend">
               <div class="legendItem"><span class="dot u"></span> unlocked</div>
               <div class="legendItem"><span class="dot l"></span> locked</div>
@@ -538,6 +555,7 @@ const ROUTE_POINTS = [
 const STOPS = [
   {
     id: 1, name: 'Venice Sign', short: 'Sign', emoji: '✦',
+    icon: 'M-7,7 L-7,0 C-7,-8 7,-8 7,0 L7,7 M-4,1 L4,1',
     note: 'The actual Venice sign over Windward. A proper entrance instead of vague beach-adjacent nonsense.',
     souvenir: 'The sign that officially starts the whole show.',
     image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Venice%20Beach%20Sign.jpg',
@@ -545,6 +563,7 @@ const STOPS = [
   },
   {
     id: 2, name: 'Muscle Beach', short: 'Muscle Beach', emoji: '💪',
+    icon: 'M-9,0 L9,0 M-9,-3 L-9,3 M-7,-5 L-7,5 M7,-5 L7,5 M9,-3 L9,3',
     note: 'Outdoor gym mythology with a lot of sunlight and almost no humility.',
     souvenir: 'Muscle Beach in its famously unbothered form.',
     image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Muscle%20Beach%20Venice.jpg',
@@ -552,6 +571,7 @@ const STOPS = [
   },
   {
     id: 3, name: 'Venice Skatepark', short: 'Skatepark', emoji: '🛹',
+    icon: 'M-9,6 C-9,-4 9,-4 9,6',
     note: 'Concrete bowls on the sand. Confidence everywhere. Restraint nowhere.',
     souvenir: 'The famous skate bowls by the beach.',
     image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Venice%20Beach%20Skatepark%20P4070293.jpg',
@@ -559,6 +579,7 @@ const STOPS = [
   },
   {
     id: 4, name: 'Venice Art Walls', short: 'Art Walls', emoji: '🎨',
+    icon: 'M-2,-8 C4,-9 9,-4 8,2 C7,8 2,10 -2,9 C-7,8 -9,4 -9,-1 C-9,-6 -5,-9 -2,-8 M4,-4 A2,2 0 1,1 4,-8',
     note: 'Legally sanctioned chaos, which still leaves plenty of chaos to enjoy.',
     souvenir: 'The art walls, unlocked properly.',
     image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Venice%20Beach%20Graffiti%20Wall.jpg',
@@ -566,6 +587,7 @@ const STOPS = [
   },
   {
     id: 5, name: 'Venice Boardwalk', short: 'Boardwalk', emoji: '☼',
+    icon: 'M0,-8 L0,-5 M5.7,-5.7 L3.5,-3.5 M8,0 L5,0 M5.7,5.7 L3.5,3.5 M0,8 L0,5 M-5.7,5.7 L-3.5,3.5 M-8,0 L-5,0 M-5.7,-5.7 L-3.5,-3.5 M0,-4 A4,4 0 1,0 0,4 A4,4 0 1,0 0,-4',
     note: 'The actual boardwalk. Busy, iconic, and constitutionally incapable of understatement.',
     souvenir: 'The boardwalk itself, in all its loud little glory.',
     image: 'https://commons.wikimedia.org/wiki/Special:FilePath/The%20Venice%20Beach%20Boardwalk%2C%20Los%20Angeles.jpg',
@@ -573,6 +595,7 @@ const STOPS = [
   },
   {
     id: 6, name: 'Venice Pier', short: 'Pier', emoji: '🎣',
+    icon: 'M-5,-9 L-5,9 M-5,-9 L6,-5 L-5,-1',
     note: 'Long horizon, salt air, and the sort of view that can improve a person out of spite.',
     souvenir: 'The pier reaching into the Pacific. The finish.',
     image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Venice%20Fishing%20Pier-02.jpg',
@@ -746,22 +769,32 @@ function renderRoute() {
   STOPS.forEach((stop, i) => {
     const [x, y]   = ROUTE_POINTS[i + 1];
     const unlocked = stopUnlocked(i);
+    const stopMiles = (ROUTE_TOTAL_MILES * (i + 1) / STOPS.length).toFixed(1);
     const g        = svgNode('g', { transform: `translate(${x},${y})` });
 
     g.appendChild(svgNode('circle', {
       r: '17',
-      fill:           unlocked ? 'rgba(255,252,254,.98)' : 'rgba(248,238,244,.95)',
+      fill:           unlocked ? 'rgba(255,252,254,.98)' : 'rgba(248,238,244,.92)',
       stroke:         unlocked ? '#c07890' : '#d0b0c0',
       'stroke-width': unlocked ? '2.2' : '1.4'
     }));
 
-    const icon = svgNode('text', { 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': '11' });
-    icon.textContent = stop.emoji;
+    g.appendChild(svgNode('path', {
+      d:                  stop.icon,
+      fill:               'none',
+      stroke:             unlocked ? '#8a4d65' : '#c4a0b4',
+      'stroke-width':     '1.8',
+      'stroke-linecap':   'round',
+      'stroke-linejoin':  'round'
+    }));
 
-    const lbl = svgNode('text', { 'text-anchor': 'middle', y: '32', class: 'routeLabel' });
-    lbl.textContent = stop.short;
+    const milesLbl = svgNode('text', { 'text-anchor': 'middle', y: '31', class: 'routeLabel routeMiles' });
+    milesLbl.textContent = stopMiles + ' mi';
 
-    g.append(icon, lbl);
+    const nameLbl = svgNode('text', { 'text-anchor': 'middle', y: '42', class: 'routeLabel' });
+    nameLbl.textContent = stop.short;
+
+    g.append(milesLbl, nameLbl);
     routeMarkers.appendChild(g);
   });
 
