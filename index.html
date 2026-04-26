@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Venice Beach Quest</title>
+<meta name="theme-color" content="#fdf8f5" />
+<meta name="description" content="Venice Beach Quest — a trust-based walking app with real Venice landmark unlocks." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- Home -->
+  <section class="screen active" id="screen-home">
+    <div class="stack">
+
+      <div class="surface">
+        <div class="surfaceHead">
+          <div>
+            <div class="tag">Venice Beach route</div>
+            <div class="surfaceTitle">Stops along the coast</div>
+            <div class="surfaceCopy">Set your goal first, walk whenever you want, then add your step count at the end of the day.</div>
+          </div>
+          <div class="mapDate" id="mapDate"></div>
+        </div>
+        <div class="mapWrap">
+          <div class="mapShell">
+            <div class="mapRouteLabel">Your Route</div>
+            <svg viewBox="0 0 1000 250" aria-label="Venice Beach Quest route">
+              <defs>
+                <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#c07890"></stop>
+                  <stop offset="100%" stop-color="#a87c3c"></stop>
+                </linearGradient>
+                <linearGradient id="oceanWave" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="rgba(181,219,239,.34)"></stop>
+                  <stop offset="100%" stop-color="rgba(181,219,239,.06)"></stop>
+                </linearGradient>
+                <filter id="routeGlow">
+                  <feGaussianBlur stdDeviation="3.5" result="blurred"></feGaussianBlur>
+                  <feMerge><feMergeNode in="blurred"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+                </filter>
+              </defs>
+              <g id="routeScenery">
+                <circle cx="98" cy="52" r="22" fill="rgba(255,220,160,.6)"></circle>
+                <path d="M0 202 C118 181,210 223,312 205 C415 187,520 226,625 206 C742 183,842 221,1000 197 L1000 250 L0 250 Z" fill="url(#oceanWave)"></path>
+                <path d="M140 170 l0 -32 M140 144 l-9 -10 M140 144 l9 -10 M140 158 l-9 -10 M140 158 l9 -10" stroke="rgba(105,130,98,.65)" stroke-width="2.8" stroke-linecap="round"></path>
+                <path d="M858 175 l0 -40 M858 147 l-10 -11 M858 147 l10 -11 M858 162 l-10 -11 M858 162 l10 -11" stroke="rgba(105,130,98,.65)" stroke-width="2.8" stroke-linecap="round"></path>
+              </g>
+              <path id="routeBase" fill="none" stroke="rgba(180,148,162,.3)" stroke-width="9" stroke-linecap="round"></path>
+              <path id="routeHalo" fill="none" stroke="rgba(192,120,144,.12)" stroke-width="22" stroke-linecap="round"></path>
+              <path id="routeProgress" fill="none" stroke="url(#routeGradient)" stroke-width="9" stroke-linecap="round" filter="url(#routeGlow)"></path>
+              <g id="routeMarkers"></g>
+              <g id="youMarker">
+                <circle r="16" fill="rgba(255,255,255,.96)" stroke="#c07890" stroke-width="1.8"></circle>
+                <circle r="9" fill="none" stroke="#c07890" stroke-width="1.5"></circle>
+                <circle r="4" fill="#8a4d65"></circle>
+                <text y="33" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9" font-weight="700" fill="#8a4d65" letter-spacing="0.08em">YOU</text>
+              </g>
+            </svg>
+            <div class="mapStopsBadge">◎ 6 stops</div>
+            <div class="legend">
+              <div class="legendItem"><span class="dot u"></span> unlocked</div>
+              <div class="legendItem"><span class="dot l"></span> locked</div>
+              <div class="legendItem"><span class="dot y"></span> you</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel compactLog">
+        <div class="compactLogHead">
+          <div>
+            <div class="compactLogTitle">Add steps</div>
+            <div class="compactLogSub">No GPS, no timer, no pressure.</div>
+          </div>
+        </div>
+        <div class="compactRow">
+          <input type="number" id="stepsInput" min="1" placeholder="Step count">
+          <button class="btnPrimary" id="logButton">Add</button>
+        </div>
+        <div class="helper" id="quickLogHelper">Add today's step count when you're done walking.</div>
+      </div>
+
+      <div class="statsPanel">
+        <div class="tag">Progress</div>
+        <div class="statsGrid">
+          <div><div class="statValue" id="heroMiles">0</div><div class="statLabel">Miles</div></div>
+          <div><div class="statValue" id="heroSteps">0</div><div class="statLabel">Steps</div></div>
+          <div><div class="statValue" id="heroUnlocked">0/6</div><div class="statLabel">Unlocked</div></div>
+        </div>
+        <div class="progressBarWrap">
+          <div class="progressBarFill" id="progressBarFill"></div>
+        </div>
+        <div class="helper" id="snapshotHelper">0% complete · set a step goal to begin</div>
+      </div>
+
+      <div class="descriptionPanel">
+        <div class="tag">About Venice Beach</div>
+        <div class="bodyText">Venice Beach is palms, murals, skaters, beach chaos, and a suspicious amount of confidence. This route moves through the places people actually picture first.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Stops -->
+  <section class="screen" id="screen-stops">
+    <div class="surface">
+      <div class="surfaceHead">
+        <div>
+          <div class="tag">Landmarks</div>
+          <div class="surfaceTitle">Venice stops</div>
+          <div class="stopsUnlockedSummary" id="stopsUnlockedSummary">0 of 6 unlocked</div>
+        </div>
+      </div>
+      <div class="gridGallery" id="stopsWrap"></div>
+    </div>
+  </section>
+
+  <!-- Goals -->
+  <section class="screen" id="screen-goals">
+    <div class="surface">
+      <div class="surfaceHead">
+        <div>
+          <div class="tag">Goals</div>
+          <div class="surfaceTitle">Pick a target that fits.</div>
+          <div class="surfaceCopy">Set a goal, move through it at your own pace.</div>
+        </div>
+      </div>
+      <div class="goalCard">
+        <div class="currentGoalLine" id="currentGoalLine"></div>
+        <div class="goalFields">
+          <div class="goalRow">
+            <label class="goalLabel" for="goalStepsInput">Total steps to complete the route</label>
+            <input type="number" id="goalStepsInput" min="1" placeholder="20000">
+          </div>
+        </div>
+        <div class="resetRow">
+          <button class="btnPrimary" id="saveGoalsButton">Set goal</button>
+        </div>
+        <div class="bestWayBox">
+          <div class="tag">Best way to use it</div>
+          <p class="bodyText">Set your goal first, walk whenever you want, then add your step count once at the end of the day. The route moves forward based on the pace you chose.</p>
+        </div>
+        <div class="resetRow" style="margin-top:8px">
+          <button class="btnGhost" id="resetProgressButton">Reset quest</button>
+        </div>
+        <div class="resetNote">Clears all steps and unlocks. Your goal stays.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Nav -->
+  <div class="bottomNav">
+    <div class="navBar">
+      <button class="navBtn active" data-screen="home"><div class="navIcon">✦</div><div class="navLabel">Home</div></button>
+      <button class="navBtn" data-screen="stops"><div class="navIcon">◌</div><div class="navLabel">Stops</div></button>
+      <button class="navBtn" data-screen="goals"><div class="navIcon">◎</div><div class="navLabel">Goals</div></button>
+    </div>
+  </div>
+</div>
+
+<!-- Postcard modal -->
+<div class="modalBg" id="modalBg" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modalMedia">
+      <div class="modalFallback" id="modalFallback">Venice postcard</div>
+      <img id="modalImage" alt="">
+      <div class="modalOverlay"></div>
+      <div class="modalCopy">
+        <div class="modalEyebrow" id="modalEyebrow"></div>
+        <div class="modalTitle" id="modalTitle"></div>
+      </div>
+    </div>
+    <div class="modalBottom">
+      <div class="modalText" id="modalText"></div>
+      <button class="closeBtn" id="closeModalButton">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
