@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SPARKS Morning Club</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-from: #fce4ec;
+      --bg-mid:  #f8bbd0;
+      --bg-to:   #ede7f6;
+      --accent:  #c2577e;
+      --accent2: #9c6fc0;
+      --card-bg: rgba(255,255,255,0.72);
+      --card-border: rgba(255,255,255,0.9);
+      --card-shadow: 0 4px 24px rgba(194,87,126,.12),0 1px 4px rgba(0,0,0,.06);
+      --text: #3d2040;
+      --text-soft: #7a5a80;
+      --text-muted: #b090b8;
+      --gold: #d4a843;
+      --gold-light: #f5d78e;
+      --nav-bg: rgba(255,240,248,0.94);
+      --radius: 18px;
+      --safe-bot: env(safe-area-inset-bottom,0px);
+    }
+    .theme-lavender {
+      --bg-from:#ede7f6; --bg-mid:#d1c4e9; --bg-to:#fce4ec;
+      --accent:#8e4db0; --accent2:#c2577e;
+      --text:#2d1840; --text-soft:#6a3d80; --nav-bg:rgba(237,231,246,.94);
+    }
+    .theme-vegas {
+      --bg-from:#0a0015; --bg-mid:#0d0820; --bg-to:#15002a;
+      --accent:#ff2d8a; --accent2:#b44fff;
+      --card-bg:rgba(20,0,40,.75); --card-border:rgba(255,45,138,.2);
+      --card-shadow:0 4px 24px rgba(255,45,138,.2),0 1px 4px rgba(0,0,0,.4);
+      --text:#fce4ff; --text-soft:#d8a0f0; --text-muted:#8840a0;
+      --gold:#ff9f1c; --gold-light:#ffc966; --nav-bg:rgba(10,0,25,.96);
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%;font-family:'Nunito',system-ui,sans-serif;
+      background:linear-gradient(160deg,var(--bg-from) 0%,var(--bg-mid) 50%,var(--bg-to) 100%);
+      color:var(--text);overflow:hidden;user-select:none}
+    #app{height:100dvh;display:flex;flex-direction:column;position:relative;
+      max-width:480px;margin:0 auto;overflow:hidden}
+
+    /* World overlays */
+    #app::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;
+      max-width:480px;margin:0 auto}
+    .world-clouds #app::before{background:radial-gradient(ellipse 80% 40% at 20% 15%,rgba(255,255,255,.7) 0%,transparent 70%),
+      radial-gradient(ellipse 60% 30% at 75% 25%,rgba(255,255,255,.55) 0%,transparent 70%)}
+    .world-stars #app::before{background-image:radial-gradient(circle,rgba(255,255,255,.9) 1px,transparent 1px);
+      background-size:28px 28px;opacity:.25}
+    .world-sunrise #app::before{background:linear-gradient(180deg,rgba(255,190,100,.4) 0%,transparent 50%)}
+    .world-garden #app::before{background:radial-gradient(ellipse 50% 60% at 80% 90%,rgba(110,184,146,.4) 0%,transparent 60%),
+      radial-gradient(ellipse 40% 50% at 10% 80%,rgba(110,184,146,.3) 0%,transparent 60%)}
+    .world-cosmic #app::before{background:radial-gradient(ellipse 60% 40% at 50% 50%,rgba(180,79,255,.3) 0%,transparent 70%),
+      radial-gradient(ellipse 30% 20% at 20% 20%,rgba(255,45,138,.2) 0%,transparent 60%)}
+
+    .screen{flex:1;overflow-y:auto;overflow-x:hidden;
+      padding:16px 16px calc(80px + var(--safe-bot));
+      display:none;position:relative;z-index:1;scroll-behavior:smooth}
+    .screen.active{display:block}
+    .screen::-webkit-scrollbar{display:none}
+
+    /* Nav */
+    #nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+      width:100%;max-width:480px;display:flex;
+      background:var(--nav-bg);backdrop-filter:blur(20px);
+      -webkit-backdrop-filter:blur(20px);
+      border-top:1px solid var(--card-border);
+      padding-bottom:var(--safe-bot);z-index:100}
+    .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+      padding:10px 4px 8px;background:none;border:none;cursor:pointer;
+      color:var(--text-muted);font-family:'Nunito',sans-serif;
+      font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;transition:color .2s}
+    .nav-btn.active{color:var(--accent)}
+    .nav-icon{font-size:20px;line-height:1}
+
+    /* Cards */
+    .card{background:var(--card-bg);border:1px solid var(--card-border);
+      border-radius:var(--radius);box-shadow:var(--card-shadow);
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      padding:18px;margin-bottom:14px;position:relative;overflow:hidden}
+    .card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent)}
+    .card-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;
+      color:var(--accent);margin-bottom:6px}
+    .card-sub{font-size:11px;font-weight:700;color:var(--text-muted);
+      letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+
+    /* Today */
+    .today-header{text-align:center;padding:20px 0 10px}
+    .today-date{font-size:11px;font-weight:700;color:var(--text-muted);
+      letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+    .today-title{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:600;
+      color:var(--accent);line-height:1}
+    .streak-badge{display:inline-flex;align-items:center;gap:4px;
+      background:linear-gradient(135deg,var(--gold),var(--gold-light));
+      color:#5a3800;font-size:11px;font-weight:800;
+      padding:3px 10px;border-radius:20px;margin-top:8px}
+
+    /* Mood */
+    .mood-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+    .mood-btn{background:rgba(255,255,255,.6);border:2px solid transparent;
+      border-radius:12px;padding:8px 12px;cursor:pointer;font-size:20px;
+      transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:2px}
+    .mood-btn span{font-size:9px;font-weight:700;color:var(--text-soft);
+      letter-spacing:.04em;text-transform:uppercase}
+    .mood-btn.selected{border-color:var(--accent);background:rgba(255,255,255,.88);transform:scale(1.08)}
+
+    .coaching-note{font-size:13px;font-style:italic;color:var(--text-soft);
+      text-align:center;padding:6px 4px;line-height:1.6}
+
+    /* Progress */
+    .progress-wrap{background:rgba(0,0,0,.06);border-radius:99px;height:8px;
+      overflow:hidden;margin:10px 0 6px}
+    .progress-bar{height:100%;border-radius:99px;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      transition:width .5s cubic-bezier(.34,1.56,.64,1);position:relative}
+    .progress-bar::after{content:'';position:absolute;inset:0;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
+      animation:shimmer 2s infinite}
+    @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+    .progress-label{font-size:11px;font-weight:700;color:var(--text-muted);text-align:center}
+
+    /* SPARKS grid */
+    .sparks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+    .spark-tile{aspect-ratio:1;border-radius:16px;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:5px;cursor:pointer;
+      border:2px solid transparent;transition:all .2s;position:relative;overflow:hidden}
+    .spark-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:45%;
+      background:linear-gradient(180deg,rgba(255,255,255,.28),transparent);
+      border-radius:14px 14px 0 0;pointer-events:none}
+    .spark-tile .spark-letter{font-family:'Cormorant Garamond',serif;font-size:32px;
+      font-weight:600;line-height:1;color:white;text-shadow:0 2px 8px rgba(0,0,0,.2)}
+    .spark-tile .spark-name{font-size:9px;font-weight:800;letter-spacing:.08em;
+      text-transform:uppercase;color:rgba(255,255,255,.9)}
+    .spark-tile.done{opacity:.7}
+    .spark-tile.done::after{content:'✓';position:absolute;top:7px;right:9px;
+      font-size:13px;color:white;font-weight:900}
+    .spark-tile:active{transform:scale(.95)}
+
+    /* Start card */
+    .start-card{display:flex;align-items:center;gap:14px;cursor:pointer}
+    .start-card:active{transform:scale(.98)}
+    .start-icon{width:48px;height:48px;border-radius:14px;display:flex;
+      align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+    .start-text{flex:1}
+    .start-label{font-size:11px;font-weight:700;color:var(--text-muted);
+      text-transform:uppercase;letter-spacing:.08em}
+    .start-name{font-family:'Cormorant Garamond',serif;font-size:22px;
+      font-weight:600;color:var(--accent)}
+    .start-desc{font-size:12px;color:var(--text-soft);margin-top:2px}
+    .start-arrow{color:var(--accent);font-size:20px}
+
+    /* Intention */
+    .intention-input{background:transparent;border:none;outline:none;
+      font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;
+      color:var(--text);width:100%;resize:none;min-height:42px;line-height:1.5}
+    .intention-input::placeholder{color:var(--text-muted)}
+
+    /* Bad Day toggle */
+    .bad-day-toggle{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+    .bad-day-label{font-size:13px;font-weight:700;color:var(--text-soft)}
+    .bad-day-sublabel{font-size:11px;color:var(--text-muted);margin-top:1px}
+    .toggle-switch{width:44px;height:26px;border-radius:13px;background:rgba(0,0,0,.1);
+      position:relative;cursor:pointer;transition:background .3s;border:none;flex-shrink:0}
+    .toggle-switch.on{background:var(--accent)}
+    .toggle-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;
+      border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);
+      transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+    .toggle-switch.on .toggle-knob{transform:translateX(18px)}
+
+    /* Mini sparks (bad day mode) */
+    .mini-sparks{display:none;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+    .bad-day-mode .sparks-grid{display:none}
+    .bad-day-mode .mini-sparks{display:grid}
+    .mini-spark{padding:16px 12px;border-radius:14px;text-align:center;cursor:pointer;
+      color:white;transition:all .2s;position:relative;overflow:hidden}
+    .mini-spark::before{content:'';position:absolute;top:0;left:0;right:0;height:40%;
+      background:linear-gradient(180deg,rgba(255,255,255,.25),transparent);pointer-events:none}
+    .mini-spark:active{transform:scale(.95)}
+    .mini-letter{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;line-height:1}
+    .mini-action{font-size:11px;margin-top:4px;opacity:.85;font-style:italic;line-height:1.3}
+    .mini-spark.done{opacity:.65}
+    .mini-spark.done::after{content:'✓';position:absolute;top:6px;right:8px;font-size:12px;font-weight:900}
+
+    /* SPARK modal */
+    #spark-modal{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;
+      align-items:center;justify-content:flex-end;
+      background:rgba(0,0,0,0);pointer-events:none;transition:background .3s}
+    #spark-modal.open{background:rgba(0,0,0,.5);pointer-events:all}
+    .spark-sheet{width:100%;max-width:480px;
+      background:linear-gradient(160deg,var(--bg-from),var(--bg-to));
+      border-radius:28px 28px 0 0;padding:28px 20px calc(40px + var(--safe-bot));
+      transform:translateY(110%);transition:transform .4s cubic-bezier(.34,1.2,.64,1);
+      max-height:90dvh;overflow-y:auto}
+    #spark-modal.open .spark-sheet{transform:translateY(0)}
+    .spark-sheet::-webkit-scrollbar{display:none}
+    .sheet-handle{width:40px;height:4px;background:rgba(0,0,0,.15);
+      border-radius:2px;margin:0 auto 22px}
+    .spark-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+    .spark-big-icon{width:64px;height:64px;border-radius:18px;display:flex;
+      align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden}
+    .spark-big-icon::before{content:'';position:absolute;top:0;left:0;right:0;height:45%;
+      background:linear-gradient(180deg,rgba(255,255,255,.3),transparent);pointer-events:none}
+    .spark-big-letter{font-family:'Cormorant Garamond',serif;font-size:36px;
+      font-weight:600;color:white;position:relative;z-index:1}
+    .spark-info h2{font-family:'Cormorant Garamond',serif;font-size:28px;
+      font-weight:600;color:var(--accent)}
+    .spark-info p{font-size:11px;color:var(--text-muted);font-weight:700;
+      text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+    .close-sheet{position:absolute;top:20px;right:20px;background:rgba(0,0,0,.08);
+      border:none;width:32px;height:32px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;font-size:16px;color:var(--text-soft)}
+
+    .idea-card{background:var(--card-bg);border:1px solid var(--card-border);
+      border-radius:16px;padding:16px 18px;margin-bottom:14px}
+    .idea-text{font-family:'Cormorant Garamond',serif;font-size:22px;
+      font-style:italic;color:var(--text);line-height:1.4;margin-bottom:12px}
+    .idea-actions{display:flex;gap:8px}
+    .btn-ghost{background:transparent;border:1.5px solid var(--accent);color:var(--accent);
+      border-radius:99px;padding:6px 14px;font-family:'Nunito',sans-serif;
+      font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
+    .btn-ghost:active{transform:scale(.96)}
+
+    .custom-label{font-size:11px;font-weight:700;color:var(--text-muted);
+      text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+    .custom-input{width:100%;background:var(--card-bg);border:1.5px solid rgba(0,0,0,.08);
+      border-radius:12px;padding:12px 14px;font-family:'Nunito',sans-serif;
+      font-size:14px;color:var(--text);outline:none;transition:border-color .2s;margin-bottom:16px}
+    .custom-input:focus{border-color:var(--accent)}
+    .custom-input::placeholder{color:var(--text-muted)}
+
+    .btn-complete{width:100%;padding:16px;border-radius:16px;border:none;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:white;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;
+      cursor:pointer;transition:all .2s;letter-spacing:.02em;
+      box-shadow:0 4px 20px rgba(0,0,0,.2)}
+    .btn-complete:active{transform:scale(.97)}
+    .btn-complete.done-state{background:linear-gradient(135deg,#81c784,#4caf50)}
+
+    /* Reading */
+    .book-cards{display:flex;flex-direction:column;gap:12px}
+    .book-card{display:flex;gap:14px;align-items:center;cursor:pointer;
+      transition:transform .15s;padding:4px 0}
+    .book-card:active{transform:scale(.98)}
+    .book-cover{width:50px;height:68px;border-radius:6px;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;font-size:24px;
+      box-shadow:2px 3px 10px rgba(0,0,0,.12)}
+    .book-meta{flex:1}
+    .book-title{font-family:'Cormorant Garamond',serif;font-size:17px;
+      font-weight:600;color:var(--text)}
+    .book-author{font-size:12px;color:var(--text-muted);font-weight:600}
+    .book-desc{font-size:12px;color:var(--text-soft);margin-top:3px;line-height:1.4}
+
+    /* Book drawer */
+    #book-drawer{position:fixed;inset:0;z-index:200;display:flex;
+      flex-direction:column;align-items:center;justify-content:flex-end;
+      background:rgba(0,0,0,0);pointer-events:none;transition:background .3s}
+    #book-drawer.open{background:rgba(0,0,0,.5);pointer-events:all}
+    .book-sheet{width:100%;max-width:480px;
+      background:linear-gradient(160deg,var(--bg-from),var(--bg-to));
+      border-radius:28px 28px 0 0;padding:28px 20px calc(40px + var(--safe-bot));
+      transform:translateY(110%);transition:transform .4s cubic-bezier(.34,1.2,.64,1);
+      max-height:82dvh;overflow-y:auto}
+    #book-drawer.open .book-sheet{transform:translateY(0)}
+    .book-sheet::-webkit-scrollbar{display:none}
+    .quote-input{width:100%;background:var(--card-bg);border:1.5px solid rgba(0,0,0,.08);
+      border-radius:12px;padding:12px 14px;font-family:'Cormorant Garamond',serif;
+      font-size:16px;font-style:italic;color:var(--text);outline:none;
+      resize:none;min-height:76px;transition:border-color .2s;margin-bottom:12px}
+    .quote-input:focus{border-color:var(--accent)}
+    .quote-input::placeholder{color:var(--text-muted)}
+
+    .btn-primary{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;
+      border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:white;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;
+      cursor:pointer;transition:all .2s;box-shadow:0 3px 12px rgba(0,0,0,.18)}
+    .btn-primary:active{transform:scale(.96)}
+    .btn-outline{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;
+      border-radius:12px;border:1.5px solid var(--accent);color:var(--accent);background:transparent;
+      font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;
+      cursor:pointer;transition:all .2s}
+    .btn-outline:active{transform:scale(.96)}
+
+    /* Journal */
+    .journal-textarea{width:100%;min-height:200px;background:transparent;
+      border:none;outline:none;font-family:'Cormorant Garamond',serif;
+      font-size:18px;color:var(--text);resize:none;line-height:1.7}
+    .journal-textarea::placeholder{color:var(--text-muted);font-style:italic}
+    .quote-item{padding:12px 0;border-bottom:1px solid rgba(0,0,0,.06)}
+    .quote-text{font-family:'Cormorant Garamond',serif;font-size:17px;
+      font-style:italic;color:var(--text);line-height:1.5}
+    .quote-source{font-size:11px;color:var(--text-muted);font-weight:700;margin-top:3px}
+
+    /* Collection */
+    .charm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:8px 0}
+    .charm-item{display:flex;flex-direction:column;align-items:center;gap:5px;
+      opacity:.2;transition:opacity .5s,transform .3s}
+    .charm-item.unlocked{opacity:1}
+    .charm-item.just-unlocked{animation:charmPop .5s cubic-bezier(.34,1.56,.64,1)}
+    @keyframes charmPop{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+    .charm-name{font-size:9px;font-weight:700;color:var(--text-soft);
+      text-align:center;letter-spacing:.06em;text-transform:uppercase}
+    .charm-count{font-size:12px;font-weight:800;color:var(--accent)}
+
+    .milestone-item{display:flex;align-items:center;gap:14px;padding:14px 0;
+      border-bottom:1px solid rgba(0,0,0,.05);opacity:.3;transition:opacity .4s}
+    .milestone-item.unlocked{opacity:1}
+    .milestone-icon{font-size:32px;flex-shrink:0}
+    .milestone-info{flex:1}
+    .milestone-name{font-weight:700;font-size:14px;color:var(--text)}
+    .milestone-req{font-size:11px;color:var(--text-muted)}
+
+    .secret-item{display:flex;align-items:center;gap:14px;padding:12px 0;
+      border-bottom:1px solid rgba(0,0,0,.05)}
+    .secret-icon{font-size:28px;flex-shrink:0;opacity:.25;transition:opacity .4s}
+    .secret-item.found .secret-icon{opacity:1}
+    .secret-info{flex:1}
+    .secret-name{font-size:13px;font-weight:700;color:var(--text-soft)}
+    .secret-desc{font-size:11px;color:var(--text-muted);margin-top:2px}
+    .secret-hint{font-size:11px;color:var(--text-muted);font-style:italic}
+
+    /* Stats */
+    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .stat-box{background:var(--card-bg);border:1px solid var(--card-border);
+      border-radius:14px;padding:14px 10px;text-align:center}
+    .stat-number{font-family:'Cormorant Garamond',serif;font-size:30px;
+      font-weight:600;color:var(--accent);line-height:1}
+    .stat-label{font-size:10px;font-weight:700;color:var(--text-muted);
+      text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+
+    /* Archive */
+    .archive-item{display:flex;align-items:center;gap:12px;padding:11px 0;
+      border-bottom:1px solid rgba(0,0,0,.05)}
+    .archive-date{font-size:11px;font-weight:700;color:var(--text-muted);min-width:72px}
+    .archive-sparks{display:flex;gap:4px;flex-wrap:wrap}
+    .archive-dot{width:10px;height:10px;border-radius:50%;opacity:.3}
+    .archive-dot.done{opacity:1}
+    .archive-mood{font-size:14px;margin-left:auto}
+
+    /* Weekly scrapbook */
+    .scrap-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+    .scrap-day{display:flex;flex-direction:column;align-items:center;gap:3px}
+    .scrap-day-label{font-size:8px;font-weight:700;color:var(--text-muted);text-transform:uppercase}
+    .scrap-dots{display:flex;flex-direction:column;gap:2px}
+    .scrap-dot{width:8px;height:8px;border-radius:50%;opacity:.15}
+    .scrap-dot.done{opacity:1}
+
+    /* Me page */
+    .theme-options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .theme-option{border-radius:14px;padding:16px 10px;text-align:center;
+      cursor:pointer;border:2px solid transparent;transition:all .2s;position:relative}
+    .theme-option.selected{border-color:var(--accent);box-shadow:0 0 0 3px rgba(194,87,126,.2)}
+    .theme-option.locked{opacity:.4;cursor:default}
+    .theme-swatch{width:40px;height:40px;border-radius:50%;margin:0 auto 8px;
+      border:2px solid rgba(255,255,255,.6);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+    .theme-name{font-size:11px;font-weight:700;color:var(--text-soft);
+      text-transform:uppercase;letter-spacing:.06em}
+    .lock-overlay{position:absolute;top:6px;right:8px;font-size:10px;opacity:.6}
+
+    .world-options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .world-option{border-radius:14px;padding:18px 14px;cursor:pointer;
+      border:2px solid transparent;transition:all .2s;text-align:center;
+      background:var(--card-bg);border-color:var(--card-border)}
+    .world-option.selected{border-color:var(--accent)}
+    .world-option:active{transform:scale(.97)}
+    .world-emoji{font-size:26px;display:block;margin-bottom:5px}
+    .world-name{font-size:12px;font-weight:700;color:var(--text-soft)}
+
+    /* Toast */
+    #toast-container{position:fixed;top:20px;left:50%;transform:translateX(-50%);
+      z-index:1000;display:flex;flex-direction:column;gap:8px;
+      width:90%;max-width:380px;pointer-events:none;align-items:center}
+    .toast{background:rgba(30,10,50,.92);backdrop-filter:blur(12px);
+      color:white;padding:11px 18px;border-radius:14px;font-size:13px;font-weight:600;
+      animation:toastIn .3s ease,toastOut .3s ease 2.7s forwards;
+      border:1px solid rgba(255,255,255,.12);text-align:center;max-width:340px}
+    @keyframes toastIn{from{opacity:0;transform:translateY(-10px) scale(.95)}to{opacity:1;transform:none}}
+    @keyframes toastOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-10px) scale(.95)}}
+
+    /* Unlock modal */
+    #unlock-modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;
+      justify-content:center;background:rgba(0,0,0,0);pointer-events:none;transition:background .3s}
+    #unlock-modal.open{background:rgba(0,0,0,.72);pointer-events:all}
+    .unlock-card{background:linear-gradient(160deg,var(--bg-from),var(--bg-to));
+      border-radius:28px;padding:40px 28px;text-align:center;max-width:320px;width:90%;
+      border:1px solid var(--card-border);box-shadow:0 20px 60px rgba(0,0,0,.3);
+      transform:scale(.8);opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1)}
+    #unlock-modal.open .unlock-card{transform:scale(1);opacity:1}
+    .unlock-charm{margin:0 auto 16px;width:88px;height:88px;
+      display:flex;align-items:center;justify-content:center}
+    .unlock-category{font-family:'Cormorant Garamond',serif;font-size:11px;font-weight:600;
+      letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+    .unlock-name{font-family:'Cormorant Garamond',serif;font-size:28px;
+      font-weight:600;color:var(--accent);margin-bottom:6px}
+    .unlock-desc{font-size:13px;color:var(--text-soft);margin-bottom:24px;line-height:1.5}
+    .btn-close-unlock{background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:white;border:none;border-radius:12px;padding:13px 36px;
+      font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
+
+    /* Confetti */
+    .confetti-piece{position:fixed;width:7px;height:7px;pointer-events:none;z-index:400;
+      animation:confettiFall 2.2s ease-in forwards}
+    @keyframes confettiFall{
+      0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+      100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
+
+    /* Section headings */
+    .section-header{display:flex;align-items:baseline;gap:8px;margin-bottom:14px;margin-top:4px}
+    .section-title{font-family:'Cormorant Garamond',serif;font-size:22px;
+      font-weight:600;color:var(--accent)}
+    .section-count{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.06em}
+    .screen-title{font-family:'Cormorant Garamond',serif;font-size:32px;
+      font-weight:600;color:var(--accent);margin-bottom:4px}
+    .screen-sub{font-size:12px;font-weight:600;color:var(--text-muted);
+      letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px}
+    .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(0,0,0,.08),transparent);margin:16px 0}
+
+    .badge{display:inline-flex;align-items:center;gap:3px;
+      background:linear-gradient(135deg,var(--gold),var(--gold-light));
+      color:#5a3800;font-size:10px;font-weight:800;
+      padding:2px 8px;border-radius:20px}
+
+    /* Read session timer */
+    .timer-display{font-family:'Cormorant Garamond',serif;font-size:48px;
+      font-weight:400;color:var(--accent);text-align:center;letter-spacing:.06em;margin:10px 0}
+    .timer-label{font-size:11px;font-weight:700;color:var(--text-muted);
+      text-align:center;text-transform:uppercase;letter-spacing:.1em}
+
+    /* Empty states */
+    .empty-state{text-align:center;padding:32px 20px;color:var(--text-muted);
+      font-size:13px;font-style:italic;line-height:1.6}
+
+    /* Divider */
+    hr.soft{border:none;border-top:1px solid rgba(0,0,0,.06);margin:14px 0}
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="toast-container"></div>
+
+  <div class="screen active" id="screen-today"></div>
+  <div class="screen" id="screen-journal"></div>
+  <div class="screen" id="screen-collection"></div>
+  <div class="screen" id="screen-read"></div>
+  <div class="screen" id="screen-me"></div>
+
+  <nav id="nav">
+    <button class="nav-btn active" data-screen="today">
+      <span class="nav-icon">✦</span>Today
+    </button>
+    <button class="nav-btn" data-screen="journal">
+      <span class="nav-icon">📓</span>Journal
+    </button>
+    <button class="nav-btn" data-screen="collection">
+      <span class="nav-icon">🫙</span>Collection
+    </button>
+    <button class="nav-btn" data-screen="read">
+      <span class="nav-icon">📖</span>Read
+    </button>
+    <button class="nav-btn" data-screen="me">
+      <span class="nav-icon">✦</span>Me
+    </button>
+  </nav>
+
+  <div id="spark-modal">
+    <div class="spark-sheet" id="spark-sheet-content"></div>
+  </div>
+
+  <div id="book-drawer">
+    <div class="book-sheet" id="book-sheet-content"></div>
+  </div>
+
+  <div id="unlock-modal">
+    <div class="unlock-card" id="unlock-card-content"></div>
+  </div>
+</div>
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────────────────
+
+const SPARKS_DATA = [
+  {
+    id:'silence', letter:'S', name:'Silence',
+    gradient:'linear-gradient(135deg,#9c7fcf,#b89ae8)',
+    shadow:'rgba(156,127,207,.45)',
+    charm:{id:'moon-compact', name:'Moon Compact', desc:'Tiny ritual object acquired.'},
+    ideas:[
+      "Sit quietly for 3 minutes. No phone.",
+      "Listen for the quietest sound in the room.",
+      "Put your phone face down. Just breathe.",
+      "Do absolutely nothing for two minutes.",
+      "Watch light move somewhere in your space.",
+      "Sit with your coffee before you open anything."
+    ],
+    badDayIdea:"Breathe in for 4. Out for 6. Once."
+  },
+  {
+    id:'pictures', letter:'P', name:'Pictures',
+    gradient:'linear-gradient(135deg,#e8799a,#f4a8c0)',
+    shadow:'rgba(232,121,154,.45)',
+    charm:{id:'vision-card', name:'Vision Card', desc:'A small window into something.'},
+    ideas:[
+      "Take one photo of something beautiful near you.",
+      "Screenshot something that made you feel something.",
+      "Find a color you haven't noticed before today.",
+      "Document your morning light.",
+      "Photograph something ordinary that deserves credit.",
+      "Look at one image that makes you feel something real."
+    ],
+    badDayIdea:"Take one photo. Anything counts."
+  },
+  {
+    id:'affirmations', letter:'A', name:'Affirmations',
+    gradient:'linear-gradient(135deg,#ff8c69,#ffb08a)',
+    shadow:'rgba(255,140,105,.45)',
+    charm:{id:'candy-heart', name:'Candy Heart', desc:'A small sweet something.'},
+    ideas:[
+      "Say one nice thing about yourself out loud.",
+      "Write 'I can handle today.' Believe 40% of it.",
+      "Name one thing you did well yesterday.",
+      "Pick one word to carry today.",
+      "Write down something you actually like about yourself.",
+      "Read something kind back to yourself."
+    ],
+    badDayIdea:"Say: 'I showed up.' That's the whole thing."
+  },
+  {
+    id:'reading', letter:'R', name:'Reading',
+    gradient:'linear-gradient(135deg,#6eb892,#94d0ac)',
+    shadow:'rgba(110,184,146,.45)',
+    charm:{id:'folded-book', name:'Folded Book', desc:'One page at a time.'},
+    ideas:[
+      "Read for 5 minutes. Anything counts.",
+      "Read one page of something physical.",
+      "Find one sentence that means something.",
+      "Open to a random page and read that.",
+      "Read something you've been avoiding.",
+      "Read something you've read before."
+    ],
+    badDayIdea:"Read 3 sentences. That's a win."
+  },
+  {
+    id:'kinetics', letter:'K', name:'Kinetics',
+    gradient:'linear-gradient(135deg,#6aaee0,#8ec8f0)',
+    shadow:'rgba(106,174,224,.45)',
+    charm:{id:'ribbon-move', name:'Ribbon Move', desc:'You moved your body. The app noticed.'},
+    ideas:[
+      "Stretch your arms above your head. That counts.",
+      "Walk to the end of the block and back.",
+      "Dance to one full song.",
+      "Do 10 jumping jacks in your pajamas.",
+      "Go outside and stand in it for 2 minutes.",
+      "Roll your shoulders back 10 times."
+    ],
+    badDayIdea:"Stand up. Walk to a different room. Return."
+  },
+  {
+    id:'scribing', letter:'S', name:'Scribing',
+    gradient:'linear-gradient(135deg,#d4a843,#f0c870)',
+    shadow:'rgba(212,168,67,.45)',
+    charm:{id:'glitter-pen', name:'Glitter Pen', desc:'The pen was moved. Progress confirmed.'},
+    ideas:[
+      "Write 3 sentences about how you actually feel.",
+      "List 5 things you noticed yesterday.",
+      "Write down one worry. Then close the notebook.",
+      "Morning pages: 1 page, anything.",
+      "Write a small gratitude. One thing only.",
+      "What do you want to remember about today?"
+    ],
+    badDayIdea:"Write one word. Any word at all."
+  }
+];
+
+const BOOKS = [
+  {id:'artists-way', title:"The Artist's Way", author:"Julia Cameron",
+    bg:'linear-gradient(135deg,#fce4ec,#f8bbd0)', emoji:'🌸',
+    desc:"Morning pages and creative recovery. The original.",
+    quote:"Leap, and the net will appear."},
+  {id:'big-magic', title:"Big Magic", author:"Elizabeth Gilbert",
+    bg:'linear-gradient(135deg,#e3f2fd,#bbdefb)', emoji:'✨',
+    desc:"On living creatively without fear. Warm and specific.",
+    quote:"You are allowed to be both a masterpiece and a work in progress."},
+  {id:'steal-like-artist', title:"Steal Like an Artist", author:"Austin Kleon",
+    bg:'linear-gradient(135deg,#f5f5f5,#e0e0e0)', emoji:'✂️',
+    desc:"10 things nobody told you about being creative.",
+    quote:"The work you do while you procrastinate is probably the work you should be doing forever."},
+  {id:'atomic-habits', title:"Atomic Habits", author:"James Clear",
+    bg:'linear-gradient(135deg,#e8f5e9,#c8e6c9)', emoji:'⚙️',
+    desc:"Tiny changes, remarkable results. Systems over goals.",
+    quote:"You do not rise to the level of your goals. You fall to the level of your systems."},
+  {id:'untamed', title:"Untamed", author:"Glennon Doyle",
+    bg:'linear-gradient(135deg,#f3e5f5,#e1bee7)', emoji:'🦁',
+    desc:"On knowing yourself and not apologizing for it.",
+    quote:"First the pain, then the rising."}
+];
+
+const MOODS = [
+  {id:'great', emoji:'✨', label:'Great'},
+  {id:'good',  emoji:'🌸', label:'Good'},
+  {id:'meh',   emoji:'☁️', label:'Meh'},
+  {id:'rough', emoji:'🌧️', label:'Rough'}
+];
+
+const THEMES = [
+  {id:'blush',    name:'Blush',    swatch:'linear-gradient(135deg,#f8bbd0,#e1bee7)', locked:false},
+  {id:'lavender', name:'Lavender', swatch:'linear-gradient(135deg,#ce93d8,#b39ddb)', locked:true, req:12},
+  {id:'vegas',    name:'Vegas',    swatch:'linear-gradient(135deg,#ff2d8a,#b44fff)', locked:true, req:25}
+];
+
+const WORLDS = [
+  {id:'clouds',  name:'Cloud Morning', emoji:'☁️'},
+  {id:'stars',   name:'Starry Night',  emoji:'✨'},
+  {id:'sunrise', name:'Sunrise',       emoji:'🌅'},
+  {id:'garden',  name:'Garden Rain',   emoji:'🌿'},
+  {id:'cosmic',  name:'Cosmic Drift',  emoji:'🌌'}
+];
+
+const MILESTONES = [
+  {id:'glow-star',       name:'Glow Star',       emoji:'⭐', req:6,  desc:'Six charms collected.',             unlocksTheme:null},
+  {id:'rainy-coffee',    name:'Rainy Coffee',     emoji:'☕', req:12, desc:'12 charms. And a new theme.',       unlocksTheme:'lavender'},
+  {id:'neon-dice',       name:'Neon Dice',        emoji:'🎲', req:25, desc:'25 charms. Vegas is open.',         unlocksTheme:'vegas'},
+  {id:'cosmic-cassette', name:'Cosmic Cassette',  emoji:'📼', req:50, desc:'50 charms. The collector arrived.', unlocksTheme:null}
+];
+
+const SECRETS = [
+  {id:'three-brain-cells', name:'3 Brain Cells Badge', emoji:'🧠', desc:'You activated Bad Day Mode.',   trigger:'badDay', hint:'Activate Bad Day Mode.'},
+  {id:'week-artifact',     name:'Week Artifact',       emoji:'📜', desc:'You archived a completed day.', trigger:'archive', hint:'Complete all 6 in one day.'},
+  {id:'secret-sparkle',    name:'Secret Sparkle',      emoji:'🫧', desc:'You found it.',                 trigger:'tabs', hint:'Keep tapping around.'}
+];
+
+const COACHING = {
+  none:   ["Still loading. No judgment.", "Something small first.", "Six tiny things. That's the whole game.", "You're not behind. It's morning."],
+  partial:["Look at that. You started.", "Momentum detected.", "Already moving. The rest costs less now.", "You're doing it. Which is the thing."],
+  almost: ["One more. You know what it is.", "So close you can taste the charm.", "Almost complete. Do you want to be almost or done?"],
+  done:   ["All six. This is what a full day looks like.", "Complete. The collection noticed.", "Done. The app has become slightly more dramatic."],
+  bad:    ["Bad Day Mode on. Everything got smaller.", "Small mode. One thing at a time.", "You showed up. That's enough.", "The bar is low. That's the whole point."]
+};
+
+// ── SVG CHARMS ──────────────────────────────────────────────────────────────
+
+function charmSVG(id, size=56) {
+  const s = size;
+  const map = {
+    'moon-compact': `<svg width="${s}" height="${s}" viewBox="0 0 56 56" fill="none">
+      <defs>
+        <radialGradient id="mc1_${s}" cx="40%" cy="30%" r="65%">
+          <stop offset="0%" stop-color="#e0d0f8"/><stop offset="100%" stop-color="#9c7fcf"/>
+        </radialGradient>
+        <radialGradient id="mc2_${s}" cx="50%" cy="20%" r="70%">
+          <stop offset="0%" stop-color="#ede0ff"/><stop offset="100%" stop-color="#b89ae8"/>
+        </radialGradient>
+      </defs>
+      <circle cx="28" cy="28" r="24" fill="url(#mc1_${s})"/>
+      <path d="M4 28 A24 24 0 0 1 52 28 Z" fill="url(#mc2_${s})"/>
+      <line x1="4" y1="28" x2="52" y2="28" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>
+      <path d="M19 18 Q23 10 31 12 Q25 12 23 18 Q21 25 28 28 Q19 26 19 18Z" fill="rgba(255,220,100,.9)"/>
+      <circle cx="28" cy="38" r="9" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.28)" stroke-width="1"/>
+      <ellipse cx="22" cy="20" rx="5" ry="2.5" fill="rgba(255,255,255,.32)" transform="rotate(-30 22 20)"/>
+      <circle cx="28" cy="28" r="2.5" fill="rgba(255,255,255,.55)"/>
+    </svg>`,
+
+    'vision-card': `<svg width="${s}" height="${s}" viewBox="0 0 56 56" fill="none">
+      <defs>
+        <linearGradient id="vc1_${s}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f9d0de"/><stop offset="100%" stop-color="#e8799a"/>
+        </linearGradient>
+      </defs>
+      <rect x="7" y="5" width="42" height="46" rx="4" fill="white" stroke="rgba(0,0,0,.07)" stroke-width="1"/>
+      <rect x="11" y="9" width="34" height="28" rx="2" fill="url(#vc1_${s})"/>
+      <line x1="11" y1="17" x2="45" y2="17" stroke="rgba(255,80,80,.4)" stroke-width="2"/>
+      <line x1="11" y1="22" x2="45" y2="22" stroke="rgba(255,180,50,.4)" stroke-width="2"/>
+      <line x1="11" y1="27" x2="45" y2="27" stroke="rgba(80,200,100,.4)" stroke-width="2"/>
+      <line x1="11" y1="32" x2="45" y2="32" stroke="rgba(80,150,255,.4)" stroke-width="2"/>
+      <rect x="11" y="9" width="34" height="10" rx="2" fill="rgba(255,255,255,.3)"/>
+      <rect x="15" y="41" width="26" height="4" rx="2" fill="rgba(0,0,0,.07)"/>
+    </svg>`,
+
+    'candy-heart': `<svg width="${s}" height="${s}" viewBox="0 0 56 56" fill="none">
+      <defs>
+        <linearGradient id="ch1_${s}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#ff8fab"/><stop offset="100%" stop-color="#ff4f7b"/>
+        </linearGradient>
+      </defs>
+      <path d="M28 46C28 46 5 33 5 19 C5 12 11 7 19 9 C22.5 10 26 13 28 17 C30 13 33.5 10 37 9 C45 7 51 12 51 19 C51 33 28 46 28 46Z" fill="url(#ch1_${s})"/>
+      <path d="M13 16 Q19 11 25 14 Q20 9 16 12Z" fill="rgba(255,255,255,.38)"/>
+      <text x="28" y="31" text-anchor="middle" font-size="10" font-weight="800" fill="rgba(255,255,255,.92)" font-family="sans-serif">XO</text>
+    </svg>`,
+
+    'folded-book': `<svg width="${s}" height="${s}" viewBox="0 0 56 56" fill="none">
+      <defs>
+        <linearGradient id="fb1_${s}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#94d0ac"/><stop offset="100%" stop-color="#5d9e7a"/>
+        </linearGradient>
+        <linearGradient id="fb2_${s}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f5f0e8"/><stop offset="100%" stop-color="#e8dfc8"/>
+        </linearGradient>
+      </defs>
+      <path d="M8 10 L28 8 L28 48 L8 46Z" fill="url(#fb2_${s})"/>
+      <path d="M28 8 L48 10 L48 46 L28 48Z" fill="url(#fb1_${s})"/>
+      <rect x="26" y="8" width="4" height="40" fill="#d4a843"/>
+      <line x1="12" y1="18" x2="24" y2="17" stroke="rgba(0,0,0,.12)" stroke-width="1"/>
+      <line x1="12" y1="24" x2="24" y2="23" stroke="rgba(0,0,0,.12)" stroke-width="1"/>
+      <line x1="12" y1="30" x2="24" y2="29" stroke="rgba(0,0,0,.12)" stroke-width="1"/>
+      <line x1="32" y1="17" x2="44" y2="18" stroke="rgba(255,255,255,.55)" stroke-width="1"/>
+      <line x1="32" y1="23" x2="44" y2="24" stroke="rgba(255,255,255,.55)" stroke-width="1"/>
+      <line x1="32" y1="29" x2="44" y2="30" stroke="rgba(255,255,255,.55)" stroke-width="1"/>
+      <rect x="26" y="8" width="2" height="40" fill="rgba(255,255,255,.3)"/>
+    </svg>`,
+
+    'ribbon-move': `<svg width="${s}" height="${s}" viewBox="0 0 56 56" fill="none">
+      <defs>
+        <linearGradient id="rm1_${s}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#6aaee0"/><stop offset="100%" stop-color="#4488c0"/>
+        </linearGradient>
+      </defs>
+      <path d="M5 40 Q7 44 20 45 L46 44 Q51 43 51 40Z" fill="rgba(0,0,0,.15)"/>
+      <path d="M5 40 Q5 27 16 23 L37 21 Q47 21 51 32 L51 40Z" fill="url(#rm1_${s})"/>
+      <path d="M5 40 Q5 27 16 23 Q9 30 9 40Z" fill="rgba(255,255,255,.15)"/>
+      <path d="M22 21 L26 21 L26 33 Q24 35 22 33Z" fill="rgba(255,255,255,.22)"/>
+      <path d="M19 28 Q27 23 37 27" stroke="#ff9db5" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M28 23 Q24 19 22 21 Q26 21 28 23Z" fill="#ff9db5"/>
+      <path d="M28 23 Q32 19 34 21 Q30 21 28 23Z" fill="#ff9db5"/>
+      <circle cx="28" cy="23" r="2.2" fill="#ff6b95"/>
+      <line x1="5" y1="40" x2="51" y2="40" stroke="rgba(255,255,255,.38)" stroke-width="1.5"/>
+    </svg>`,
+
+    'glitter-pen': `<svg width="${s}" height="${s}" viewBox="0 0 56 56" fill="none">
+      <defs>
+        <linearGradient id="gp1_${s}" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#f5d78e"/>
+          <stop offset="50%" stop-color="#d4a843"/>
+          <stop offset="100%" stop-color="#b8860b"/>
+        </linearGradient>
+      </defs>
+      <rect x="23" y="7" width="12" height="34" rx="5" fill="url(#gp1_${s})"/>
+      <rect x="33" y="7" width="2.5" height="22" rx="1" fill="rgba(0,0,0,.14)"/>
+      <rect x="23" y="21" width="12" height="4" fill="rgba(0,0,0,.1)"/>
+      <path d="M25 41 L29.5 50 L34 41Z" fill="#d4a843"/>
+      <path d="M28.5 45 L29.5 50 L30.5 45Z" fill="rgba(0,0,0,.18)"/>
+      <path d="M29.5 7 L31.2 11.5 L36 11.5 L32.4 14.2 L33.8 18.5 L29.5 15.8 L25.2 18.5 L26.6 14.2 L23 11.5 L27.8 11.5Z" fill="rgba(255,255,255,.82)"/>
+      <circle cx="26" cy="16" r="1.2" fill="rgba(255,255,255,.7)"/>
+      <circle cx="34" cy="20" r="1" fill="rgba(255,255,255,.6)"/>
+      <circle cx="25" cy="28" r="1.2" fill="rgba(255,255,255,.55)"/>
+      <circle cx="34" cy="30" r="1" fill="rgba(255,255,255,.5)"/>
+      <rect x="25" y="9" width="4" height="30" rx="2" fill="rgba(255,255,255,.14)"/>
+    </svg>`,
+
+    'glow-star': `<svg width="${s}" height="${s}" viewBox="0 0 56 56" fill="none">
+      <defs>
+        <radialGradient id="gs1_${s}" cx="50%" cy="40%" r="55%">
+          <stop offset="0%" stop-color="#fffde6"/><stop offset="60%" stop-color="#ffd700"/><stop offset="100%" stop-color="#d4a843"/>
+        </radialGradient>
+        <filter id="gsglow_${s}"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <circle cx="28" cy="28" r="24" fill="rgba(255,215,0,.12)"/>
+      <path filter="url(#gsglow_${s})" d="M28 8 L31.8 20.5 L45 20.5 L34.5 28.5 L38.2 41 L28 33 L17.8 41 L21.5 28.5 L11 20.5 L24.2 20.5Z" fill="url(#gs1_${s})"/>
+      <path d="M28 11 L30.5 20.5 L28 20.5Z" fill="rgba(255,255,255,.4)"/>
+    </svg>`,
+
+    'rainy-coffee': `<svg width="${s}" height="${s}" viewBox="0 0 56 56" fill="none">
+      <defs>
+        <linearGradient id="rc1_${s}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#d4a843"/><stop offset="100%" stop-color="#8b5e3c"/>
+        </linearGradient>
+      </defs>
+      <path d="M13 24 L15 46 L41 46 L43 24Z" fill="url(#rc1_${s})"/>
+      <rect x="11" y="21" width="34" height="5" rx="2.5" fill="#c49030"/>
+      <path d="M43 30 Q52 30 52 37 Q52 43 43 43" stroke="#c49030" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="28" cy="25.5" rx="13" ry="3.5" fill="#6b3c20"/>
+      <ellipse cx="21" cy="16" rx="1.8" ry="3" fill="#6aaee0"/>
+      <ellipse cx="28" cy="12" rx="1.8" ry="3" fill="#6aaee0"/>
+      <ellipse cx="35" cy="16" rx="1.8" ry="3" fill="#6aaee0"/>
+      <path d="M13 30 L13 44 L15.5 44 L15.5 30Z" fill="rgba(255,255,255,.14)"/>
+    </svg>`,
+
+    'neon-dice': `<svg width="${s}" height="${s}" viewBox="0 0 56 56" fill="none">
+      <defs>
+        <linearGradient id="nd1_${s}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#1a0533"/><stop offset="100%" stop-color="#0d1a33"/>
+        </linearGradient>
+      </defs>
+      <rect x="7" y="7" width="42" height="42" rx="11" fill="url(#nd1_${s})" stroke="#ff2d8a" stroke-width="2"/>
+      <rect x="7" y="7" width="42" height="42" rx="11" fill="none" stroke="rgba(255,45,138,.35)" stroke-width="5"/>
+      <circle cx="18" cy="18" r="4.5" fill="#ff2d8a"/>
+      <circle cx="38" cy="18" r="4.5" fill="#b44fff"/>
+      <circle cx="28" cy="28" r="4.5" fill="white"/>
+      <circle cx="18" cy="38" r="4.5" fill="#b44fff"/>
+      <circle cx="38" cy="38" r="4.5" fill="#ff2d8a"/>
+    </svg>`,
+
+    'cosmic-cassette': `<svg width="${s}" height="${s}" viewBox="0 0 56 56" fill="none">
+      <defs>
+        <linearGradient id="cc1_${s}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#1a0533"/><stop offset="100%" stop-color="#0d1a33"/>
+        </linearGradient>
+      </defs>
+      <rect x="3" y="13" width="50" height="30" rx="6" fill="url(#cc1_${s})" stroke="rgba(180,79,255,.55)" stroke-width="1.5"/>
+      <rect x="13" y="19" width="30" height="18" rx="4" fill="rgba(0,0,0,.4)" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+      <circle cx="22" cy="28" r="5.5" fill="rgba(255,255,255,.04)" stroke="rgba(180,79,255,.8)" stroke-width="1.5"/>
+      <circle cx="34" cy="28" r="5.5" fill="rgba(255,255,255,.04)" stroke="rgba(255,45,138,.8)" stroke-width="1.5"/>
+      <circle cx="22" cy="28" r="2" fill="rgba(180,79,255,.65)"/>
+      <circle cx="34" cy="28" r="2" fill="rgba(255,45,138,.65)"/>
+      <path d="M16 28 L18 28" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
+      <path d="M38 28 L40 28" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
+      <circle cx="7" cy="19" r="1.2" fill="rgba(255,200,50,.8)"/>
+      <circle cx="49" cy="39" r="1.2" fill="rgba(255,200,50,.8)"/>
+      <circle cx="9" cy="37" r="1" fill="rgba(180,79,255,.8)"/>
+    </svg>`,
+
+    'three-brain-cells': `<svg width="${s}" height="${s}" viewBox="0 0 56 56" fill="none">
+      <ellipse cx="15" cy="30" rx="9" ry="10" fill="#e8799a"/>
+      <ellipse cx="28" cy="26" rx="9" ry="10" fill="#9c7fcf"/>
+      <ellipse cx="41" cy="30" rx="9" ry="10" fill="#6aaee0"/>
+      <path d="M11 28 Q13 26 15 28" stroke="rgba(255,255,255,.55)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <path d="M24 24 Q26 22 28 24" stroke="rgba(255,255,255,.55)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <path d="M37 28 Q39 26 41 28" stroke="rgba(255,255,255,.55)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <circle cx="13" cy="32" r="2.2" fill="white"/><circle cx="13.5" cy="32" r="1" fill="#333"/>
+      <circle cx="26" cy="28" r="2.2" fill="white"/><circle cx="26.5" cy="28" r="1" fill="#333"/>
+      <circle cx="39" cy="32" r="2.2" fill="white"/><circle cx="39.5" cy="32" r="1" fill="#333"/>
+      <ellipse cx="12" cy="26" rx="3" ry="2" fill="rgba(255,255,255,.3)" transform="rotate(-20 12 26)"/>
+      <ellipse cx="25" cy="22" rx="3" ry="2" fill="rgba(255,255,255,.3)" transform="rotate(-20 25 22)"/>
+      <ellipse cx="38" cy="26" rx="3" ry="2" fill="rgba(255,255,255,.3)" transform="rotate(-20 38 26)"/>
+    </svg>`,
+
+    'week-artifact': `<svg width="${s}" height="${s}" viewBox="0 0 56 56" fill="none">
+      <defs>
+        <linearGradient id="wa1_${s}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f5d78e"/><stop offset="100%" stop-color="#c49030"/>
+        </linearGradient>
+      </defs>
+      <rect x="14" y="14" width="28" height="28" rx="2" fill="url(#wa1_${s})"/>
+      <ellipse cx="14" cy="28" rx="4.5" ry="14" fill="#d4a843" stroke="rgba(0,0,0,.1)" stroke-width="1"/>
+      <ellipse cx="42" cy="28" rx="4.5" ry="14" fill="#d4a843" stroke="rgba(0,0,0,.1)" stroke-width="1"/>
+      <line x1="18" y1="22" x2="38" y2="22" stroke="rgba(0,0,0,.14)" stroke-width="1"/>
+      <line x1="18" y1="27" x2="38" y2="27" stroke="rgba(0,0,0,.14)" stroke-width="1"/>
+      <line x1="18" y1="32" x2="38" y2="32" stroke="rgba(0,0,0,.14)" stroke-width="1"/>
+      <line x1="18" y1="37" x2="32" y2="37" stroke="rgba(0,0,0,.14)" stroke-width="1"/>
+      <circle cx="28" cy="28" r="8.5" fill="#c2577e"/>
+      <circle cx="28" cy="28" r="6.5" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.3)" stroke-width=".5"/>
+      <text x="28" y="31.5" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.92)" font-weight="bold" font-family="serif">S</text>
+    </svg>`,
+
+    'secret-sparkle': `<svg width="${s}" height="${s}" viewBox="0 0 56 56" fill="none">
+      <defs>
+        <radialGradient id="sp1_${s}" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="rgba(255,157,181,0)"/>
+        </radialGradient>
+      </defs>
+      <circle cx="28" cy="28" r="22" fill="url(#sp1_${s})" opacity=".25"/>
+      <line x1="28" y1="5" x2="28" y2="51" stroke="rgba(255,157,181,.5)" stroke-width="1.5"/>
+      <line x1="5" y1="28" x2="51" y2="28" stroke="rgba(184,154,232,.5)" stroke-width="1.5"/>
+      <line x1="11" y1="11" x2="45" y2="45" stroke="rgba(255,157,181,.4)" stroke-width="1.5"/>
+      <line x1="45" y1="11" x2="11" y2="45" stroke="rgba(184,154,232,.4)" stroke-width="1.5"/>
+      <path d="M28 17 L30 25 L38 28 L30 31 L28 39 L26 31 L18 28 L26 25Z" fill="white" stroke="rgba(255,215,0,.4)" stroke-width=".5"/>
+      <path d="M13 15 L14.2 19.2 L18.5 20.5 L14.2 21.8 L13 26 L11.8 21.8 L7.5 20.5 L11.8 19.2Z" fill="rgba(255,157,181,.85)"/>
+      <path d="M43 35 L44 38.5 L47.5 39.5 L44 40.5 L43 44 L42 40.5 L38.5 39.5 L42 38.5Z" fill="rgba(184,154,232,.85)"/>
+      <circle cx="17" cy="38" r="2.5" fill="rgba(255,215,0,.7)"/>
+      <circle cx="40" cy="15" r="2.5" fill="rgba(255,157,181,.7)"/>
+    </svg>`
+  };
+  return map[id] || `<svg width="${s}" height="${s}" viewBox="0 0 56 56"><text x="28" y="36" text-anchor="middle" font-size="28">✦</text></svg>`;
+}
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+
+function todayKey() { return new Date().toISOString().slice(0,10); }
+function dateKey(d) { return d.toISOString().slice(0,10); }
+function formatDate(isoStr) {
+  const d = new Date(isoStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+
+const DEFAULT_STATE = {
+  today:{date:'',sparks:{},mood:null,intention:'',badDayMode:false},
+  charms:{silence:0,pictures:0,affirmations:0,reading:0,kinetics:0,scribing:0},
+  totalCharms:0, streak:0, lastCompletedDate:null, lastMilestone:-1,
+  theme:'blush', world:'clouds', sound:false,
+  quotes:[], journal:'', customActions:{},
+  unlockedLoot:[], archive:[], tabTaps:0, currentIdxes:{},
+  readingUnlocked:false
+};
+
+let STATE;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('sparksMorningClubState');
+    if (!raw) return deepMerge(DEFAULT_STATE, {today:{date:todayKey()}});
+    const s = JSON.parse(raw);
+    if (s.today && s.today.date !== todayKey()) {
+      const prev = s.today;
+      if (prev.sparks && Object.values(prev.sparks).some(v=>v)) {
+        const allDone = Object.values(prev.sparks).filter(Boolean).length === 6;
+        s.archive = s.archive || [];
+        s.archive.unshift({date:prev.date, sparks:{...prev.sparks},
+          sparksCount:Object.values(prev.sparks).filter(Boolean).length,
+          allDone, mood:prev.mood});
+        if (s.archive.length > 60) s.archive.pop();
+        if (allDone && !(s.unlockedLoot||[]).includes('week-artifact')) {
+          s.unlockedLoot = [...(s.unlockedLoot||[]), 'week-artifact'];
+        }
+      }
+      // Streak logic
+      const yest = new Date(); yest.setDate(yest.getDate()-1);
+      const yKey = dateKey(yest);
+      const yestDone = (s.archive||[]).some(a=>a.date===yKey&&a.allDone);
+      s.streak = yestDone ? (s.streak||0)+1 : 0;
+      s.today = {date:todayKey(),sparks:{},mood:null,intention:'',badDayMode:false};
+    }
+    return deepMerge(DEFAULT_STATE, s);
+  } catch { return deepMerge(DEFAULT_STATE, {today:{date:todayKey()}}); }
+}
+
+function deepMerge(base, over) {
+  const r = {...base};
+  for (const k in over) {
+    if (over[k]!==null && typeof over[k]==='object' && !Array.isArray(over[k]))
+      r[k] = deepMerge(base[k]||{}, over[k]);
+    else r[k] = over[k];
+  }
+  return r;
+}
+
+function saveState() {
+  localStorage.setItem('sparksMorningClubState', JSON.stringify(STATE));
+}
+
+// ── ROUTING ──────────────────────────────────────────────────────────────────
+
+let currentScreen = 'today';
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));
+  currentScreen = id;
+  STATE.tabTaps = (STATE.tabTaps||0)+1;
+  if (STATE.tabTaps>=22 && !STATE.unlockedLoot.includes('secret-sparkle')) {
+    STATE.unlockedLoot.push('secret-sparkle');
+    saveState();
+    setTimeout(()=>showUnlock({category:'Secret',name:'Secret Sparkle',
+      desc:'You tapped enough tabs to find it.',svgId:'secret-sparkle'}), 600);
+  }
+  saveState();
+  switch(id) {
+    case 'today':      renderToday();      break;
+    case 'journal':    renderJournal();    break;
+    case 'collection': renderCollection(); break;
+    case 'read':       renderRead();       break;
+    case 'me':         renderMe();         break;
+  }
+}
+
+// ── RENDER: TODAY ─────────────────────────────────────────────────────────────
+
+function renderToday() {
+  const el = document.getElementById('screen-today');
+  const done = SPARKS_DATA.filter(s=>STATE.today.sparks[s.id]).length;
+  const bd = STATE.today.badDayMode;
+  if (bd) el.classList.add('bad-day-mode');
+  else el.classList.remove('bad-day-mode');
+
+  const coachKey = bd?'bad':done===0?'none':done<4?'partial':done<6?'almost':'done';
+  const coachArr = COACHING[coachKey];
+  const coachMsg = coachArr[Math.floor((Date.now()/60000)%coachArr.length)];
+
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+
+  const nextSpark = SPARKS_DATA.find(s=>!STATE.today.sparks[s.id]);
+
+  el.innerHTML = `
+    <div class="today-header">
+      <div class="today-date">${dateStr}</div>
+      <div class="today-title">SPARKS</div>
+      ${STATE.streak>1?`<div><span class="streak-badge">🔥 ${STATE.streak} day streak</span></div>`:''}
+    </div>
+
+    <!-- Mood -->
+    <div class="card">
+      <div class="card-sub">How are you arriving today?</div>
+      <div class="mood-row">
+        ${MOODS.map(m=>`
+          <button class="mood-btn ${STATE.today.mood===m.id?'selected':''}"
+            data-mood="${m.id}" onclick="setMood('${m.id}')">
+            ${m.emoji}<span>${m.label}</span>
+          </button>`).join('')}
+      </div>
+      <div class="coaching-note" id="coaching-note">${coachMsg}</div>
+    </div>
+
+    <!-- Progress -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div class="card-sub" style="margin-bottom:0">Today's SPARKS</div>
+        <div class="badge">${done}/6</div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" style="width:${Math.round(done/6*100)}%"></div>
+      </div>
+      <div class="progress-label">${done===6?'Complete. The collection noticed.':done===0?'Tap a SPARK to begin.':done===5?'One left.':done+' of 6 done'}</div>
+    </div>
+
+    <!-- SPARKS grid -->
+    <div class="sparks-grid">
+      ${SPARKS_DATA.map(s=>`
+        <div class="spark-tile ${STATE.today.sparks[s.id]?'done':''}"
+          style="background:${s.gradient};box-shadow:0 6px 20px ${s.shadow}"
+          onclick="openSparkModal('${s.id}')">
+          <div class="spark-letter">${s.letter}</div>
+          <div class="spark-name">${s.name}</div>
+        </div>`).join('')}
+    </div>
+
+    <!-- Mini sparks (bad day mode) -->
+    <div class="mini-sparks">
+      ${SPARKS_DATA.map(s=>`
+        <div class="mini-spark ${STATE.today.sparks[s.id]?'done':''}"
+          style="background:${s.gradient};box-shadow:0 4px 14px ${s.shadow}"
+          onclick="openSparkModal('${s.id}')">
+          <div class="mini-letter">${s.letter}</div>
+          <div class="mini-action">${s.badDayIdea}</div>
+        </div>`).join('')}
+    </div>
+
+    <!-- Start where you left off -->
+    ${nextSpark?`
+    <div class="card" onclick="openSparkModal('${nextSpark.id}')">
+      <div class="card-sub">Start where you left off</div>
+      <div class="start-card">
+        <div class="start-icon" style="background:${nextSpark.gradient}">${nextSpark.letter}</div>
+        <div class="start-text">
+          <div class="start-name">${nextSpark.name}</div>
+          <div class="start-desc">${nextSpark.badDayIdea}</div>
+        </div>
+        <div class="start-arrow">›</div>
+      </div>
+    </div>`:''}
+
+    <!-- Tiny intention -->
+    <div class="card">
+      <div class="card-sub">Tiny intention</div>
+      <textarea class="intention-input" id="intention-input" placeholder="Today I want to…"
+        oninput="saveIntention(this.value)">${STATE.today.intention||''}</textarea>
+    </div>
+
+    <!-- Bad Day Mode -->
+    <div class="card">
+      <div class="bad-day-toggle">
+        <div>
+          <div class="bad-day-label">Bad Day Mode</div>
+          <div class="bad-day-sublabel">Everything gets smaller.</div>
+        </div>
+        <button class="toggle-switch ${bd?'on':''}" id="bad-day-toggle" onclick="toggleBadDay()">
+          <div class="toggle-knob"></div>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function setMood(id) {
+  STATE.today.mood = id;
+  saveState();
+  renderToday();
+}
+
+function saveIntention(val) {
+  STATE.today.intention = val;
+  saveState();
+}
+
+function toggleBadDay() {
+  STATE.today.badDayMode = !STATE.today.badDayMode;
+  if (STATE.today.badDayMode && !STATE.unlockedLoot.includes('three-brain-cells')) {
+    STATE.unlockedLoot.push('three-brain-cells');
+    saveState();
+    setTimeout(()=>showUnlock({category:'Secret',name:'3 Brain Cells Badge',
+      desc:'You activated Bad Day Mode.',svgId:'three-brain-cells'}),500);
+  }
+  saveState();
+  renderToday();
+}
+
+// ── SPARK MODAL ───────────────────────────────────────────────────────────────
+
+let activeSparkId = null;
+
+function openSparkModal(id) {
+  activeSparkId = id;
+  const spark = SPARKS_DATA.find(s=>s.id===id);
+  const isDone = STATE.today.sparks[id];
+  const custom = STATE.customActions[id]||'';
+  const ideas = spark.ideas;
+  const idx = STATE.currentIdxes[id]||0;
+  const currentIdea = ideas[idx % ideas.length];
+
+  document.getElementById('spark-sheet-content').innerHTML = `
+    <div class="sheet-handle"></div>
+    <button class="close-sheet" onclick="closeSparkModal()">✕</button>
+    <div class="spark-header">
+      <div class="spark-big-icon" style="background:${spark.gradient}">
+        <div class="spark-big-letter">${spark.letter}</div>
+      </div>
+      <div class="spark-info">
+        <h2>${spark.name}</h2>
+        <p>${spark.charm.name}</p>
+      </div>
+    </div>
+    <div class="idea-card">
+      <div class="idea-text" id="idea-text">"${currentIdea}"</div>
+      <div class="idea-actions">
+        <button class="btn-ghost" onclick="shuffleIdea('${id}')">↻ Shuffle</button>
+      </div>
+    </div>
+    <div class="custom-label">Your own action</div>
+    <input class="custom-input" id="custom-action-input" type="text"
+      placeholder="Write your own version…"
+      value="${custom}"
+      oninput="saveCustomAction('${id}',this.value)">
+    <button class="btn-complete ${isDone?'done-state':''}" id="complete-btn"
+      onclick="completeSpark('${id}')">
+      ${isDone?'✓ Done for today':'Complete '+spark.name}
+    </button>
+  `;
+
+  const modal = document.getElementById('spark-modal');
+  modal.classList.add('open');
+  modal.addEventListener('click', modalBackdropClick);
+}
+
+function modalBackdropClick(e) {
+  if (e.target === document.getElementById('spark-modal')) closeSparkModal();
+}
+
+function closeSparkModal() {
+  document.getElementById('spark-modal').classList.remove('open');
+  activeSparkId = null;
+}
+
+function shuffleIdea(id) {
+  const spark = SPARKS_DATA.find(s=>s.id===id);
+  const idx = ((STATE.currentIdxes[id]||0)+1) % spark.ideas.length;
+  STATE.currentIdxes[id] = idx;
+  saveState();
+  const el = document.getElementById('idea-text');
+  if (el) { el.style.opacity='0'; setTimeout(()=>{el.textContent='"'+spark.ideas[idx]+'"';el.style.opacity='1';el.style.transition='opacity .25s';},150); }
+}
+
+function saveCustomAction(id, val) {
+  STATE.customActions[id] = val;
+  saveState();
+}
+
+function completeSpark(id) {
+  if (STATE.today.sparks[id]) { closeSparkModal(); return; }
+  STATE.today.sparks[id] = true;
+  const spark = SPARKS_DATA.find(s=>s.id===id);
+  STATE.charms[id] = (STATE.charms[id]||0)+1;
+  STATE.totalCharms = (STATE.totalCharms||0)+1;
+  saveState();
+
+  closeSparkModal();
+  toast('✦ '+spark.charm.name+' acquired.');
+
+  setTimeout(()=>{
+    showUnlock({category:'SPARK Charm', name:spark.charm.name,
+      desc:spark.charm.desc, svgId:spark.charm.id});
+  }, 400);
+
+  setTimeout(()=>checkMilestones(), 1800);
+
+  // Check if all done
+  const allDone = SPARKS_DATA.every(s=>STATE.today.sparks[s.id]);
+  if (allDone) {
+    STATE.streak = (STATE.streak||0) + (STATE.lastCompletedDate!==todayKey()?1:0);
+    STATE.lastCompletedDate = todayKey();
+    saveState();
+    setTimeout(()=>toast('🎉 All six. The collection is pleased.'), 2200);
+  }
+
+  renderToday();
+}
+
+function checkMilestones() {
+  const total = STATE.totalCharms;
+  for (const m of MILESTONES) {
+    if (total>=m.req && !STATE.unlockedLoot.includes(m.id)) {
+      STATE.unlockedLoot.push(m.id);
+      if (m.unlocksTheme) {
+        toast('🔓 '+m.name+' — '+m.unlocksTheme.charAt(0).toUpperCase()+m.unlocksTheme.slice(1)+' Theme unlocked!');
+      }
+      saveState();
+      setTimeout(()=>showUnlock({category:'Milestone',name:m.name,
+        desc:m.desc,svgId:m.id}), 600);
+      break;
+    }
+  }
+}
+
+// ── RENDER: READING ───────────────────────────────────────────────────────────
+
+let readTimer = null;
+let readSeconds = 0;
+let readTimerRunning = false;
+
+function renderRead() {
+  const el = document.getElementById('screen-read');
+  const readDone = STATE.today.sparks['reading'];
+
+  el.innerHTML = `
+    <div class="screen-title">Reading</div>
+    <div class="screen-sub">5 minutes. Anything counts.</div>
+
+    <div class="card">
+      <div class="card-sub">Reading timer</div>
+      <div class="timer-display" id="read-timer">${formatTimer(readSeconds)}</div>
+      <div class="timer-label" id="timer-label">${readTimerRunning?'Reading…':'Ready when you are'}</div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn-primary" id="timer-btn" onclick="toggleTimer()"
+          style="flex:1;justify-content:center">${readTimerRunning?'⏸ Pause':'▶ Read 5 mins'}</button>
+        <button class="btn-outline" onclick="resetTimer()">↺</button>
+      </div>
+      ${readSeconds>=300&&!readDone?`<div style="margin-top:14px">
+        <button class="btn-complete" onclick="completeSpark('reading')">Complete Reading SPARK</button>
+      </div>`:''}
+      ${readDone?`<div style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;font-size:13px">✓ Reading done today.</div>`:''}
+    </div>
+
+    <div class="card">
+      <div class="card-sub">A few books worth carrying</div>
+      <div class="book-cards">
+        ${BOOKS.map(b=>`
+          <div class="book-card" onclick="openBookDrawer('${b.id}')">
+            <div class="book-cover" style="background:${b.bg}">${b.emoji}</div>
+            <div class="book-meta">
+              <div class="book-title">${b.title}</div>
+              <div class="book-author">${b.author}</div>
+              <div class="book-desc">${b.desc}</div>
+            </div>
+            <div style="color:var(--text-muted);font-size:18px">›</div>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function formatTimer(sec) {
+  const m = Math.floor(sec/60).toString().padStart(2,'0');
+  const s = (sec%60).toString().padStart(2,'0');
+  return m+':'+s;
+}
+
+function toggleTimer() {
+  if (readTimerRunning) {
+    clearInterval(readTimer); readTimerRunning=false;
+  } else {
+    readTimerRunning=true;
+    readTimer=setInterval(()=>{
+      readSeconds++;
+      const el=document.getElementById('read-timer');
+      const lb=document.getElementById('timer-label');
+      const tb=document.getElementById('timer-btn');
+      if(el) el.textContent=formatTimer(readSeconds);
+      if(lb) lb.textContent='Reading…';
+      if(readSeconds===300){
+        toast('⏱ 5 minutes done. Folded Book incoming.');
+        renderRead();
+      }
+    },1000);
+  }
+  renderRead();
+}
+
+function resetTimer() {
+  clearInterval(readTimer); readTimer=null; readTimerRunning=false; readSeconds=0;
+  renderRead();
+}
+
+function openBookDrawer(id) {
+  const book = BOOKS.find(b=>b.id===id);
+  document.getElementById('book-sheet-content').innerHTML = `
+    <div class="sheet-handle"></div>
+    <button class="close-sheet" onclick="closeBookDrawer()">✕</button>
+    <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:20px">
+      <div class="book-cover" style="background:${book.bg};width:60px;height:84px;font-size:28px">${book.emoji}</div>
+      <div>
+        <div class="book-title" style="font-size:20px">${book.title}</div>
+        <div class="book-author" style="margin-top:3px">${book.author}</div>
+        <div class="book-desc" style="margin-top:6px">${book.desc}</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-sub">A quote from this one</div>
+      <div class="idea-text" style="font-size:18px">"${book.quote}"</div>
+    </div>
+    <div class="card-sub">Save a quote to journal</div>
+    <textarea class="quote-input" id="drawer-quote-input"
+      placeholder="Write or paste a quote…"></textarea>
+    <div style="display:flex;gap:10px">
+      <button class="btn-primary" onclick="saveQuote('${id}')">Save quote</button>
+      <button class="btn-outline" onclick="useDefaultQuote('${id}')">Use theirs</button>
+    </div>
+  `;
+  document.getElementById('book-drawer').classList.add('open');
+  document.getElementById('book-drawer').addEventListener('click', bookBackdropClick);
+}
+
+function bookBackdropClick(e) {
+  if (e.target===document.getElementById('book-drawer')) closeBookDrawer();
+}
+function closeBookDrawer() { document.getElementById('book-drawer').classList.remove('open'); }
+
+function useDefaultQuote(bookId) {
+  const book = BOOKS.find(b=>b.id===bookId);
+  const el=document.getElementById('drawer-quote-input');
+  if(el) el.value=book.quote;
+}
+
+function saveQuote(bookId) {
+  const el=document.getElementById('drawer-quote-input');
+  const text=(el?el.value:'').trim();
+  if(!text) return;
+  const book=BOOKS.find(b=>b.id===bookId);
+  STATE.quotes.unshift({text, source:book.title+' — '+book.author, date:todayKey()});
+  if(STATE.quotes.length>50) STATE.quotes.pop();
+  saveState();
+  toast('📌 Quote saved to journal.');
+  closeBookDrawer();
+}
+
+// ── RENDER: JOURNAL ───────────────────────────────────────────────────────────
+
+function renderJournal() {
+  const el = document.getElementById('screen-journal');
+  el.innerHTML = `
+    <div class="screen-title">Journal</div>
+    <div class="screen-sub">Just write.</div>
+
+    <div class="card">
+      <textarea class="journal-textarea" id="journal-area"
+        placeholder="Anything. What you noticed. How you feel. What happened. One sentence or ten pages."
+        oninput="saveJournal(this.value)">${STATE.journal||''}</textarea>
+    </div>
+
+    ${STATE.quotes.length?`
+    <div class="section-header">
+      <div class="section-title">Saved Quotes</div>
+      <div class="section-count">${STATE.quotes.length}</div>
+    </div>
+    <div class="card">
+      ${STATE.quotes.map((q,i)=>`
+        <div class="quote-item">
+          <div class="quote-text">"${q.text}"</div>
+          <div class="quote-source">${q.source}${q.date?' · '+formatDate(q.date):''}</div>
+        </div>`).join('')}
+    </div>`:
+    `<div class="empty-state">Quotes saved from the Reading page will appear here.</div>`}
+  `;
+}
+
+function saveJournal(val) { STATE.journal=val; saveState(); }
+
+// ── RENDER: COLLECTION ────────────────────────────────────────────────────────
+
+function renderCollection() {
+  const el = document.getElementById('screen-collection');
+  const sparkColors = {silence:'#9c7fcf',pictures:'#e8799a',affirmations:'#ff8c69',
+    reading:'#6eb892',kinetics:'#6aaee0',scribing:'#d4a843'};
+
+  el.innerHTML = `
+    <div class="screen-title">Collection</div>
+    <div class="screen-sub">${STATE.totalCharms} charm${STATE.totalCharms!==1?'s':''} total</div>
+
+    <!-- Stats -->
+    <div class="stats-grid" style="margin-bottom:20px">
+      <div class="stat-box"><div class="stat-number">${STATE.totalCharms}</div><div class="stat-label">Charms</div></div>
+      <div class="stat-box"><div class="stat-number">${STATE.streak||0}</div><div class="stat-label">Streak</div></div>
+      <div class="stat-box"><div class="stat-number">${(STATE.archive||[]).filter(a=>a.allDone).length}</div><div class="stat-label">Full days</div></div>
+    </div>
+
+    <!-- SPARK Charms -->
+    <div class="section-header">
+      <div class="section-title">SPARK Charms</div>
+    </div>
+    <div class="card">
+      <div class="charm-grid">
+        ${SPARKS_DATA.map(s=>{
+          const count=STATE.charms[s.id]||0;
+          return `<div class="charm-item ${count>0?'unlocked':''}">
+            ${charmSVG(s.charm.id,56)}
+            <div class="charm-name">${s.charm.name}</div>
+            ${count>0?`<div class="charm-count">×${count}</div>`:'<div class="charm-count" style="opacity:.3">—</div>'}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- Milestones -->
+    <div class="section-header">
+      <div class="section-title">Milestones</div>
+    </div>
+    <div class="card">
+      ${MILESTONES.map(m=>`
+        <div class="milestone-item ${STATE.unlockedLoot.includes(m.id)?'unlocked':''}">
+          <div class="milestone-icon">${charmSVG(m.id,40)}</div>
+          <div class="milestone-info">
+            <div class="milestone-name">${m.name}</div>
+            <div class="milestone-req">${STATE.unlockedLoot.includes(m.id)?'Unlocked':'Reach '+m.req+' total charms'}</div>
+          </div>
+          ${STATE.unlockedLoot.includes(m.id)?'<div style="color:var(--gold);font-size:16px">✦</div>':''}
+        </div>`).join('')}
+    </div>
+
+    <!-- Secrets -->
+    <div class="section-header">
+      <div class="section-title">Secrets</div>
+    </div>
+    <div class="card">
+      ${SECRETS.map(s=>`
+        <div class="secret-item ${STATE.unlockedLoot.includes(s.id)?'found':''}">
+          <div class="secret-icon">${charmSVG(s.id,36)}</div>
+          <div class="secret-info">
+            ${STATE.unlockedLoot.includes(s.id)?
+              `<div class="secret-name">${s.name}</div><div class="secret-desc">${s.desc}</div>`:
+              `<div class="secret-name">???</div><div class="secret-hint">${s.hint}</div>`}
+          </div>
+          ${STATE.unlockedLoot.includes(s.id)?'<div style="color:var(--gold);font-size:16px">✦</div>':''}
+        </div>`).join('')}
+    </div>
+
+    <!-- Weekly scrapbook -->
+    <div class="section-header">
+      <div class="section-title">This Week</div>
+    </div>
+    <div class="card">
+      ${renderScrapbook()}
+    </div>
+
+    <!-- Archive -->
+    ${(STATE.archive||[]).length?`
+    <div class="section-header">
+      <div class="section-title">Archive</div>
+      <div class="section-count">last ${Math.min(STATE.archive.length,14)} days</div>
+    </div>
+    <div class="card">
+      ${(STATE.archive||[]).slice(0,14).map(a=>`
+        <div class="archive-item">
+          <div class="archive-date">${formatDate(a.date)}</div>
+          <div class="archive-sparks">
+            ${SPARKS_DATA.map(s=>`
+              <div class="archive-dot ${a.sparks[s.id]?'done':''}"
+                style="background:${sparkColors[s.id]}"></div>`).join('')}
+          </div>
+          ${a.mood?`<div class="archive-mood">${MOODS.find(m=>m.id===a.mood)?.emoji||''}</div>`:''}
+        </div>`).join('')}
+    </div>`:''}
+  `;
+}
+
+function renderScrapbook() {
+  const sparkColors = {silence:'#9c7fcf',pictures:'#e8799a',affirmations:'#ff8c69',
+    reading:'#6eb892',kinetics:'#6aaee0',scribing:'#d4a843'};
+  const days=[];
+  const today=new Date();
+  for(let i=6;i>=0;i--) {
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const key=dateKey(d);
+    const dayLabel=['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()];
+    const isToday=key===todayKey();
+    let sparks={};
+    if(isToday) sparks=STATE.today.sparks;
+    else { const arch=(STATE.archive||[]).find(a=>a.date===key); sparks=arch?arch.sparks:{}; }
+    days.push({key,dayLabel,sparks,isToday});
+  }
+  return `<div class="scrap-week">
+    ${days.map(d=>`
+      <div class="scrap-day">
+        <div class="scrap-day-label" style="${d.isToday?'color:var(--accent);font-weight:800':''}">${d.dayLabel}</div>
+        <div class="scrap-dots">
+          ${SPARKS_DATA.map(s=>`
+            <div class="scrap-dot ${d.sparks[s.id]?'done':''}"
+              style="background:${sparkColors[s.id]}"></div>`).join('')}
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+
+// ── RENDER: ME ────────────────────────────────────────────────────────────────
+
+function renderMe() {
+  const el = document.getElementById('screen-me');
+  el.innerHTML = `
+    <div class="screen-title">Me</div>
+    <div class="screen-sub">Make it yours.</div>
+
+    <!-- Themes -->
+    <div class="card">
+      <div class="card-sub">Theme</div>
+      <div class="theme-options">
+        ${THEMES.map(t=>{
+          const isLocked=t.locked&&!STATE.unlockedLoot.some(l=>{
+            const m=MILESTONES.find(mi=>mi.unlocksTheme===t.id); return m&&STATE.unlockedLoot.includes(m.id);
+          });
+          return `<div class="theme-option ${STATE.theme===t.id?'selected':''} ${isLocked?'locked':''}"
+            onclick="${isLocked?`toast('🔒 Unlock at ${MILESTONES.find(m=>m.unlocksTheme===t.id)?.req||'?'} charms.')`:``}setTheme('${t.id}')">
+            <div class="theme-swatch" style="background:${t.swatch}"></div>
+            <div class="theme-name">${t.name}</div>
+            ${isLocked?`<div class="lock-overlay">🔒</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- Worlds -->
+    <div class="card">
+      <div class="card-sub">Tiny World</div>
+      <div class="world-options">
+        ${WORLDS.map(w=>`
+          <div class="world-option ${STATE.world===w.id?'selected':''}"
+            onclick="setWorld('${w.id}')">
+            <span class="world-emoji">${w.emoji}</span>
+            <div class="world-name">${w.name}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Sound -->
+    <div class="card">
+      <div class="bad-day-toggle">
+        <div>
+          <div class="bad-day-label">Sound</div>
+          <div class="bad-day-sublabel">Off by default. Coming soon.</div>
+        </div>
+        <button class="toggle-switch ${STATE.sound?'on':''}" onclick="toggleSound()">
+          <div class="toggle-knob"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="card">
+      <div class="card-sub">About</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--accent);margin-bottom:8px">SPARKS Morning Club</div>
+      <div style="font-size:13px;color:var(--text-soft);line-height:1.6">
+        A premium collectible morning ritual. Six tiny actions. Real unlockables.
+        No wellness-app voice. Data stays on your device.
+      </div>
+      <div class="divider"></div>
+      <div style="font-size:11px;color:var(--text-muted)">
+        Total charms: ${STATE.totalCharms} &nbsp;·&nbsp; Items unlocked: ${STATE.unlockedLoot.length}
+      </div>
+      <div style="margin-top:12px">
+        <button class="btn-ghost" onclick="if(confirm('Reset all progress? This cannot be undone.')){localStorage.removeItem('sparksMorningClubState');location.reload()}">
+          Reset everything
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function setTheme(id) {
+  const t=THEMES.find(t=>t.id===id);
+  if(!t) return;
+  if(t.locked) {
+    const m=MILESTONES.find(mi=>mi.unlocksTheme===id);
+    if(m&&!STATE.unlockedLoot.includes(m.id)) { toast('🔒 Reach '+m.req+' charms to unlock.'); return; }
+  }
+  STATE.theme=id;
+  saveState();
+  applyTheme();
+  renderMe();
+}
+
+function setWorld(id) {
+  STATE.world=id;
+  saveState();
+  applyWorld();
+  renderMe();
+}
+
+function toggleSound() {
+  STATE.sound=!STATE.sound;
+  saveState();
+  toast(STATE.sound?'🔊 Sound on. (Sounds coming soon.)':'🔇 Sound off.');
+  renderMe();
+}
+
+function applyTheme() {
+  document.body.classList.remove('theme-blush','theme-lavender','theme-vegas');
+  if(STATE.theme!=='blush') document.body.classList.add('theme-'+STATE.theme);
+}
+
+function applyWorld() {
+  document.body.classList.remove('world-clouds','world-stars','world-sunrise','world-garden','world-cosmic');
+  document.body.classList.add('world-'+STATE.world);
+}
+
+// ── UNLOCK MODAL ──────────────────────────────────────────────────────────────
+
+let unlockQueue = [];
+let unlockShowing = false;
+
+function showUnlock(data) {
+  unlockQueue.push(data);
+  if (!unlockShowing) processUnlockQueue();
+}
+
+function processUnlockQueue() {
+  if (!unlockQueue.length) { unlockShowing=false; return; }
+  unlockShowing=true;
+  const data=unlockQueue.shift();
+  const modal=document.getElementById('unlock-modal');
+  document.getElementById('unlock-card-content').innerHTML = `
+    <div class="unlock-charm">${charmSVG(data.svgId,88)}</div>
+    <div class="unlock-category">${data.category||'Unlocked'}</div>
+    <div class="unlock-name">${data.name}</div>
+    <div class="unlock-desc">${data.desc}</div>
+    <button class="btn-close-unlock" onclick="closeUnlock()">Nice.</button>
+  `;
+  modal.classList.add('open');
+  spawnConfetti();
+}
+
+function closeUnlock() {
+  document.getElementById('unlock-modal').classList.remove('open');
+  setTimeout(processUnlockQueue, 400);
+}
+
+function spawnConfetti() {
+  const colors=['#f8bbd0','#e1bee7','#d4a843','#6aaee0','#94d0ac','#ff9db5','#b89ae8'];
+  for(let i=0;i<28;i++) {
+    const p=document.createElement('div');
+    p.className='confetti-piece';
+    p.style.cssText=`left:${Math.random()*100}%;top:-10px;background:${colors[i%colors.length]};
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+      animation-duration:${1.5+Math.random()*1.2}s;
+      animation-delay:${Math.random()*0.5}s;
+      transform:rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 3000);
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+
+function toast(msg) {
+  const t=document.createElement('div');
+  t.className='toast';
+  t.textContent=msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(()=>t.remove(), 3200);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+
+STATE = loadState();
+applyTheme();
+applyWorld();
+
+document.getElementById('nav').addEventListener('click', e=>{
+  const btn=e.target.closest('.nav-btn');
+  if(btn&&btn.dataset.screen) showScreen(btn.dataset.screen);
+});
+
+document.getElementById('spark-modal').addEventListener('click', e=>{
+  if(e.target===document.getElementById('spark-modal')) closeSparkModal();
+});
+document.getElementById('book-drawer').addEventListener('click', e=>{
+  if(e.target===document.getElementById('book-drawer')) closeBookDrawer();
+});
+document.getElementById('unlock-modal').addEventListener('click', e=>{
+  if(e.target===document.getElementById('unlock-modal')) closeUnlock();
+});
+
+renderToday();
+</script>
+</body>
+</html>
