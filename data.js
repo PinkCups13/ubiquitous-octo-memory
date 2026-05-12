@@ -1,66 +1,243 @@
-const STORAGE_KEY        = 'vbq_steps_clean';
-const GOALS_KEY          = 'vbq_goal_steps_clean';
-const DEFAULT_GOAL_STEPS = 20000;
-const ROUTE_TOTAL_MILES  = 10.0;
+const EH = {
 
-// Visual positions along the SVG route (start + 6 stops)
-const ROUTE_POINTS = [
-  [36,  138],
-  [165, 106],
-  [318,  76],
-  [462, 108],
-  [582, 140],
-  [786,  96],
-  [968,  76]
-];
+jokes: [
+  "My to-do list has become historical fiction.",
+  "I opened the email, which legally counts as cardio.",
+  "Today's plan: lower the bar until it becomes a tasteful floor feature.",
+  "The laundry has entered its folklore era.",
+  "I did one thing and immediately expected a parade. A small parade. Reasonable.",
+  "My brain said 'later' with the confidence of a corrupt city official.",
+  "The task is probably not hard. It is just wearing a dramatic cape.",
+  "Congratulations. You opened the app instead of staring at the wall with cinematic intensity.",
+  "I cleaned one drawer and immediately expected my entire life to reorganize itself. Bold of the drawer.",
+  "The email remains unopened, but I have looked near it with intent.",
+  "Progress report: I moved from the couch to a chair. A different chair.",
+  "Currently in my 'about to start' era. Very exciting. Very long.",
+  "The task has been pending long enough to qualify for a historic preservation grant.",
+  "My ambition is enormous. My follow-through is on sabbatical.",
+],
 
-const STOPS = [
-  {
-    id: 1, name: 'Venice Sign', short: 'Sign', emoji: '✦',
-    icon: 'M-7,7 L-7,0 C-7,-8 7,-8 7,0 L7,7 M-4,1 L4,1',
-    note: 'The actual Venice sign over Windward. A proper entrance instead of vague beach-adjacent nonsense.',
-    souvenir: 'The sign that officially starts the whole show.',
-    image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Venice%20Beach%20Sign.jpg',
-    fallback: 'linear-gradient(145deg,#f8dfe9,#f4c8da)'
-  },
-  {
-    id: 2, name: 'Muscle Beach', short: 'Muscle Beach', emoji: '💪',
-    icon: 'M-9,0 L9,0 M-9,-3 L-9,3 M-7,-5 L-7,5 M7,-5 L7,5 M9,-3 L9,3',
-    note: 'Outdoor gym mythology with a lot of sunlight and almost no humility.',
-    souvenir: 'Muscle Beach in its famously unbothered form.',
-    image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Muscle%20Beach%20Venice.jpg',
-    fallback: 'linear-gradient(145deg,#f1deeb,#f5dac9)'
-  },
-  {
-    id: 3, name: 'Venice Skatepark', short: 'Skatepark', emoji: '🛹',
-    icon: 'M-9,6 C-9,-4 9,-4 9,6',
-    note: 'Concrete bowls on the sand. Confidence everywhere. Restraint nowhere.',
-    souvenir: 'The famous skate bowls by the beach.',
-    image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Venice%20Beach%20Skatepark%20P4070293.jpg',
-    fallback: 'linear-gradient(145deg,#f4dce8,#d9e9f6)'
-  },
-  {
-    id: 4, name: 'Venice Art Walls', short: 'Art Walls', emoji: '🎨',
-    icon: 'M-2,-8 C4,-9 9,-4 8,2 C7,8 2,10 -2,9 C-7,8 -9,4 -9,-1 C-9,-6 -5,-9 -2,-8 M4,-4 A2,2 0 1,1 4,-8',
-    note: 'Legally sanctioned chaos, which still leaves plenty of chaos to enjoy.',
-    souvenir: 'The art walls, unlocked properly.',
-    image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Venice%20Beach%20Graffiti%20Wall.jpg',
-    fallback: 'linear-gradient(145deg,#f6dbeb,#e6bfd6)'
-  },
-  {
-    id: 5, name: 'Venice Boardwalk', short: 'Boardwalk', emoji: '☼',
-    icon: 'M0,-8 L0,-5 M5.7,-5.7 L3.5,-3.5 M8,0 L5,0 M5.7,5.7 L3.5,3.5 M0,8 L0,5 M-5.7,5.7 L-3.5,3.5 M-8,0 L-5,0 M-5.7,-5.7 L-3.5,-3.5 M0,-4 A4,4 0 1,0 0,4 A4,4 0 1,0 0,-4',
-    note: 'The actual boardwalk. Busy, iconic, and constitutionally incapable of understatement.',
-    souvenir: 'The boardwalk itself, in all its loud little glory.',
-    image: 'https://commons.wikimedia.org/wiki/Special:FilePath/The%20Venice%20Beach%20Boardwalk%2C%20Los%20Angeles.jpg',
-    fallback: 'linear-gradient(145deg,#f8d7e6,#f7e6f0)'
-  },
-  {
-    id: 6, name: 'Venice Pier', short: 'Pier', emoji: '🎣',
-    icon: 'M-5,-9 L-5,9 M-5,-9 L6,-5 L-5,-1',
-    note: 'Long horizon, salt air, and the sort of view that can improve a person out of spite.',
-    souvenir: 'The pier reaching into the Pacific. The finish.',
-    image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Venice%20Fishing%20Pier-02.jpg',
-    fallback: 'linear-gradient(145deg,#e1eff7,#f4deea)'
-  }
-];
+fakeAwards: [
+  "Congratulations. You opened the app instead of staring at the wall with cinematic intensity.",
+  "Today's Award: Looked Near the Task. Did Not Touch. Respect.",
+  "You are hereby recognized for Emotional Labor Done Entirely Internally.",
+  "Certificate of Achievement: Successfully Put Shoes On. Hero.",
+  "You moved. That counts. Annoying, but true.",
+  "Award for Bravery: You Opened the Tab. Closed Nothing. Progress.",
+],
+
+fakeHoroscopes: [
+  "Today you will defeat one small administrative beast and then require a beverage.",
+  "Mercury is in retrograde, which is your fault for knowing that.",
+  "You will achieve one thing and feel briefly invincible. Then require a snack.",
+  "The stars suggest that today is not the day to reorganize your life. Just the drawer.",
+  "Your energy is big today. Mostly ambient. Still counts.",
+  "Something is about to become slightly less overwhelming. Prepare to be mildly relieved.",
+],
+
+antiAffirmations: [
+  "You do not need to become your best self today. Your medium self has paperwork access.",
+  "You are enough, even when you are mostly soup.",
+  "Your worth is not determined by your productivity. Your to-do list is embarrassed by this.",
+  "It is okay to not thrive. Sometimes surviving is already doing a lot.",
+  "You are allowed to rest. The laundry will still be there, emotionally ready for you.",
+  "Growth is optional. Adequate is also a valid setting.",
+],
+
+riddles: [
+  { q: "I'm full of keys but can't open a lock. What am I?", a: "A piano." },
+  { q: "What has cities but no houses, forests but no trees, and rivers but no water?", a: "A map." },
+  { q: "What gets sharper the more you use it?", a: "Your brain." },
+  { q: "What has a neck but no head?", a: "A bottle." },
+  { q: "What can travel around the world while staying in a corner?", a: "A stamp." },
+  { q: "What has hands but cannot clap?", a: "A clock." },
+  { q: "What has many teeth but cannot bite?", a: "A comb." },
+  { q: "What is always in front of you but can't be seen?", a: "The future." },
+  { q: "The more you take, the more you leave behind. What am I?", a: "Footsteps." },
+  { q: "What can you break, even if you never pick it up or touch it?", a: "A promise." },
+],
+
+lifeHacks: [
+  "Put the thing you need to remember directly in your walking path. Not nearby. In the way. Future You needs a physical plot device.",
+  "Set a 3-minute timer. You are not cleaning the room. You are annoying the mess briefly.",
+  "Open the app or folder before you decide whether you are doing the task. Starting is allowed to be microscopic.",
+  "Use a landing bowl for keys, chargers, lip balm, and other tiny escape artists.",
+  "If a task has lived in your head for more than two days, write the very next physical action, not the whole saga.",
+  "When a task feels huge, rename it as the first click: 'open the email,' 'find the number,' 'put shoes on.'",
+  "Put boring paperwork in one visible folder called 'Today's Nonsense.' Dignity is optional. Retrieval is not.",
+  "Reply to the email in draft form. Do not send. Just draft. Your future self is braver.",
+  "Name the task the tiniest version of itself. Not 'do taxes.' 'Find the folder.'",
+  "If you can't decide, flip a coin. Not to follow it — to notice if you felt relief or dread.",
+],
+
+tinyTasks: [
+  "Clear exactly one flat surface. Not the room. The surface. We are not founding a civilization.",
+  "Put one thing in the trash.",
+  "Refill your drink.",
+  "Move one item to the room where it belongs.",
+  "Open the document. Do not edit it yet. Just open it.",
+  "Put shoes on. Shoes are management now.",
+  "Set a 5-minute timer and do the first ugly version.",
+  "Take one photo of something you need to remember.",
+  "Make a tiny pile of things that belong somewhere else.",
+  "Wash one cup or dish.",
+  "Send the 'just checking in' text. One sentence. No explanation of the delay.",
+  "Write the first word of the thing you've been avoiding.",
+  "Close three browser tabs. Pick any three. They weren't coming back.",
+  "Put the charger where it actually belongs.",
+  "Sit up straight for exactly one minute. That's the whole task.",
+],
+
+weirdFacts: [
+  "Octopuses have three hearts. Excessive, but stylish.",
+  "Bananas are berries, but strawberries are not. Botany chose violence.",
+  "The Eiffel Tower can grow taller in hot weather because metal expands.",
+  "Sharks are older than trees.",
+  "Wombat poop is cube-shaped. Nature has a filing system, apparently.",
+  "A group of flamingos is called a flamboyance. Correct.",
+  "The first oranges were not necessarily orange. Branding took a while.",
+  "Cleopatra lived closer in time to the Moon landing than to the construction of the Great Pyramid.",
+  "A day on Venus is longer than a year on Venus. Venus does not respect your schedule.",
+  "Crows recognize human faces and hold grudges. Good to know.",
+  "The inventor of the Pringles can is buried in a Pringles can. He requested this.",
+  "Honey never expires. Edible honey has been found in Egyptian tombs.",
+  "Butterflies taste with their feet. Committed to the experience.",
+  "Sea otters hold hands while sleeping so they don't drift apart.",
+  "There are more possible iterations of a game of chess than atoms in the observable universe.",
+],
+
+cutePrompts: [
+  "Look for the softest-looking thing in the room.",
+  "Find something tiny and give it a dramatic title.",
+  "Open an animal cam for two minutes. Let a sea otter do the emotional labor.",
+  "Look at something pink, shiny, fluffy, or absurd.",
+  "Name one object nearby like it is a tiny aristocrat.",
+  "Find the coziest corner of your space and acknowledge it exists.",
+  "Think of the last animal you found genuinely adorable. Hold that for a second.",
+  "Look out the nearest window. Note one living thing.",
+  "Imagine the softest possible blanket. You don't need to own it. Just imagine it.",
+],
+
+scripts: [
+  { id: "phone-call", title: "Phone Call: Financial Assistance", situation: "Calling about a bill, assistance program, or account", script: "Hi, I'm calling to ask about financial assistance for my account. Can you tell me what programs I may qualify for and what documents you need?", softer: "Hi, I'm not totally sure if I qualify, but I wanted to ask about any assistance options you might have. Is this the right place to ask?", firmer: "Hi. I need information about hardship assistance programs on my account. What are my options?" },
+  { id: "follow-up", title: "Follow-Up: Still Waiting", situation: "Checking in when you haven't heard back", script: "Hi, I'm checking in on this because I haven't seen an update yet. Can you let me know the current status and what, if anything, you need from me?", softer: "Hi, just wanted to gently follow up — no rush, I just want to make sure nothing fell through the cracks.", firmer: "I'm following up again. I need a status update and a clear next step by end of week." },
+  { id: "reschedule", title: "Reschedule an Appointment", situation: "Rescheduling something you agreed to", script: "Hi, I need to reschedule my appointment. What times do you have available this week or next?", softer: "Hi, I'm so sorry to do this, but I need to move my appointment. Is there any flexibility on timing?", firmer: "I need to reschedule. Please send me two or three available slots." },
+  { id: "say-no", title: "Saying No", situation: "Declining something without a giant explanation", script: "Thanks for thinking of me, but I can't take that on right now.", softer: "I really appreciate you asking. I'm at capacity right now, but I hope it goes well.", firmer: "I'm not available for this. Thanks for understanding." },
+  { id: "ask-help", title: "Asking for Help", situation: "When you're stuck and need someone else's eyes", script: "Can you help me figure out the first step? I'm getting stuck before I even start.", softer: "I feel a bit embarrassed asking, but I'm genuinely stuck. Would you mind talking me through it?", firmer: "I need help with this. Can we find 10 minutes to look at it together?" },
+  { id: "late-reply", title: "Awkward Late Reply", situation: "When you dropped the thread and are finally coming back", script: "Hey, I meant to reply sooner. I got overwhelmed and dropped the thread. I'm back now.", softer: "Hi — I'm so sorry for the delay. Life got chaotic. Back now and ready to pick this up.", firmer: "Sorry for the delay. Here's where I'm at: [your update]. Let me know next steps." },
+],
+
+links: [
+  { id: "useless-web", title: "The Useless Web", description: "A button that throws you into random absurd websites. For boredom emergencies.", url: "https://theuselessweb.com/", category: "Weird Internet", moods: ["Bored","Need Weird"], effort: "Bare Minimum", estimatedTime: "2 min", nightSafe: false },
+  { id: "neal-fun", title: "Neal.fun", description: "Interactive internet toys, visualizations, and games. Very good for curious boredom.", url: "https://neal.fun/", category: "Weird Internet", moods: ["Bored","Need Weird","Deep Dive"], effort: "Tiny", estimatedTime: "5 min", nightSafe: true },
+  { id: "bored-button", title: "Bored Button", description: "Random free games and odd little things when deciding is too much.", url: "https://www.boredbutton.com/", category: "Weird Internet", moods: ["Bored"], effort: "Bare Minimum", estimatedTime: "2 min", nightSafe: false },
+  { id: "war-peas", title: "War and Peas", description: "Funny, dark little comics with bite.", url: "https://warandpeas.com/", category: "Comics", moods: ["Bored","Need Weird"], effort: "Bare Minimum", estimatedTime: "5 min", nightSafe: true },
+  { id: "trashmaid", title: "The Little Trashmaid", description: "Cute comedy comic about a mermaid in the modern world.", url: "https://www.webtoons.com/en/canvas/the-little-trashmaid/list?title_no=300138", category: "Comics", moods: ["Bored","Need Cute"], effort: "Tiny", estimatedTime: "10 min", nightSafe: true },
+  { id: "xkcd", title: "xkcd", description: "Smart, weird, nerdy comics and explainers.", url: "https://xkcd.com/", category: "Comics", moods: ["Bored","Deep Dive"], effort: "Bare Minimum", estimatedTime: "5 min", nightSafe: true },
+  { id: "atlas-obscura", title: "Atlas Obscura", description: "Strange places, hidden history, weird wonders.", url: "https://www.atlasobscura.com/", category: "Deep Dives", moods: ["Deep Dive","Need Weird","Bored"], effort: "Medium", estimatedTime: "15 min", nightSafe: false },
+  { id: "public-domain", title: "The Public Domain Review", description: "Beautiful essays about odd history, art, literature, and forgotten things.", url: "https://publicdomainreview.org/", category: "Deep Dives", moods: ["Deep Dive","Need Weird"], effort: "Medium", estimatedTime: "15 min", nightSafe: true },
+  { id: "nasa-eyes", title: "NASA Eyes", description: "Browser-based space exploration with NASA imagery and data.", url: "https://science.nasa.gov/eyes/", category: "Deep Dives", moods: ["Deep Dive","Bored"], effort: "Tiny", estimatedTime: "10 min", nightSafe: true },
+  { id: "futility-closet", title: "Futility Closet", description: "Curiosities, puzzles, historical oddities, and clever little rabbit holes.", url: "https://www.futilitycloset.com/", category: "Deep Dives", moods: ["Deep Dive","Bored"], effort: "Tiny", estimatedTime: "10 min", nightSafe: true },
+  { id: "messy-nessy", title: "Messy Nessy Chic", description: "Offbeat culture, vintage oddities, hidden places, and internet rabbit holes.", url: "https://www.messynessychic.com/", category: "Deep Dives", moods: ["Deep Dive","Need Weird"], effort: "Medium", estimatedTime: "15 min", nightSafe: false },
+  { id: "riddles-com", title: "Riddles.com", description: "Riddles, brain teasers, and puzzle collections.", url: "https://www.riddles.com/", category: "Riddles", moods: ["Bored","Frozen"], effort: "Bare Minimum", estimatedTime: "5 min", nightSafe: true },
+  { id: "braingle", title: "Braingle", description: "Brain teasers, riddles, trivia, and puzzles.", url: "https://www.braingle.com/", category: "Riddles", moods: ["Bored","Frozen"], effort: "Tiny", estimatedTime: "10 min", nightSafe: true },
+  { id: "explore-cams", title: "Explore.org Live Cams", description: "Free live animal and nature cams.", url: "https://explore.org/livecams", category: "Calm Things", moods: ["Anxious","Need Cute"], effort: "Bare Minimum", estimatedTime: "2 min", nightSafe: true },
+  { id: "monterey-cams", title: "Monterey Bay Aquarium Cams", description: "Jellyfish, sea otters, sharks, and ocean calm.", url: "https://www.montereybayaquarium.org/animals/live-cams", category: "Calm Things", moods: ["Anxious","Need Cute"], effort: "Bare Minimum", estimatedTime: "2 min", nightSafe: true },
+  { id: "windowswap", title: "WindowSwap", description: "Look out of someone else's window around the world.", url: "https://www.window-swap.com/", category: "Calm Things", moods: ["Anxious","Bored","Need Cute"], effort: "Bare Minimum", estimatedTime: "2 min", nightSafe: true },
+],
+
+fieldTrips: [
+  { id: "target-wander", title: "Target Wander, Surgical Edition", why: "Bright lights, mild movement, no one needs you to be interesting.", mission: "Find one pink thing, one useful thing, and one object that should not cost that much.", effort: "Requires Shoes", time: "30 min", budget: "Free", social: "No talking", energy: "Low" },
+  { id: "library-browse", title: "Library Browse", why: "Quiet, air-conditioned, full of things no algorithm chose for you.", mission: "Find one book with an interesting cover. Read the first paragraph. Put it back. That counts.", effort: "Requires Shoes", time: "30 min", budget: "Free", social: "No talking", energy: "Low" },
+  { id: "coffee-shop", title: "Coffee Shop With One Task", why: "Ambient noise, a reason to leave, a beverage as a reward.", mission: "Bring one small task. Do it for 20 minutes. Do not optimize the experience.", effort: "Requires Shoes", time: "An hour", budget: "Tiny Treat", social: "Possible humans", energy: "Medium" },
+  { id: "dollar-store", title: "Dollar Store Treasure Hunt", why: "Chaotic, cheap, aggressively unserious. Good for the soul.", mission: "Find the weirdest item. Find something surprisingly useful. Spend under five dollars.", effort: "Requires Shoes", time: "30 min", budget: "Cheap", social: "Possible humans", energy: "Low" },
+  { id: "car-sit", title: "Sit in the Car With Music", why: "Private, contained, counts as leaving without the full commitment.", mission: "Pick one album or playlist. Sit there for one full song without looking at your phone.", effort: "Bare Minimum", time: "10 min", budget: "Free", social: "No talking", energy: "Low" },
+  { id: "texture-walk", title: "Five Textures Walk", why: "A tiny mission makes a walk feel deliberate instead of pointless.", mission: "Take five photos of interesting textures. Bark, concrete, shadow, anything odd.", effort: "Requires Shoes", time: "10 min", budget: "Free", social: "No talking", energy: "Low" },
+  { id: "thrift-mug", title: "Thrift Store: Find the Weirdest Mug", why: "Low stakes, odd inventory, possible minor victory.", mission: "Find the mug with the most concerning message or image. You do not have to buy it.", effort: "Requires Shoes", time: "30 min", budget: "Free", social: "Possible humans", energy: "Medium" },
+  { id: "garden-center", title: "Garden Center Wander", why: "Plants, no pressure, often free to wander.", mission: "Find one plant with a funny name. Notice one thing that smells good. Leave feeling mildly refreshed.", effort: "Requires Shoes", time: "30 min", budget: "Free", social: "No talking", energy: "Low" },
+],
+
+dailyDoors: [
+  { id: "d0", title: "The Jellyfish Window", desc: "2 minutes. No thinking. Just suspiciously elegant sea blobs.", link: "https://www.montereybayaquarium.org/animals/live-cams", time: "2 min" },
+  { id: "d1", title: "Weird Victorian Object", desc: "For when your life needs perspective and antique nonsense.", link: "https://publicdomainreview.org/", time: "5 min" },
+  { id: "d2", title: "One Tiny Reset", desc: "Clear one surface. Then act unbearable about it internally.", link: null, time: "3 min" },
+  { id: "d3", title: "Someone Else's Window", desc: "Look out of a stranger's window. Stay two minutes. Do not become a Victorian ghost.", link: "https://www.window-swap.com/", time: "2 min" },
+  { id: "d4", title: "The Weird Facts Machine", desc: "Tap once. Get one strange fact. Proceed slightly more informed.", link: null, time: "1 min" },
+  { id: "d5", title: "Atlas of Strange Places", desc: "Find one place on earth you had no idea existed.", link: "https://www.atlasobscura.com/", time: "10 min" },
+  { id: "d6", title: "Space Is Very Large", desc: "Briefly confront how enormous space is. Feel correspondingly small. Return.", link: "https://neal.fun/", time: "5 min" },
+],
+
+cantStartSteps: [
+  { text: "Put both feet on the floor.", easier: "Just shift in your seat. That counts." },
+  { text: "Look left. Look right. Slow and suspicious.", easier: "Just look at one thing that isn't a screen." },
+  { text: "Touch something cold.", easier: "Touch something room temperature. Still valid." },
+  { text: "Take one slow breath in. Let it out.", easier: "Just breathe normally. You're already doing it." },
+],
+
+cantStartDoors: ["Cute", "Funny", "Weird", "Deep Dive", "Tiny Task"],
+
+charms: [
+  { id: "tiny-exit", label: "Tiny Exit", icon: "✦" },
+  { id: "cold-champion", label: "Cold Object Champion", icon: "❄" },
+  { id: "opened-thing", label: "Opened the Thing", icon: "◎" },
+  { id: "boredom-dodger", label: "Boredom Dodger", icon: "★" },
+  { id: "one-surface", label: "One Surface Hero", icon: "◌" },
+  { id: "rabbit-hole", label: "Rabbit Hole Token", icon: "♦" },
+  { id: "cute-emergency", label: "Cute Emergency Badge", icon: "✿" },
+  { id: "returned-earth", label: "Returned to Earth", icon: "◉" },
+  { id: "requires-shoes", label: "Requires Shoes Medal", icon: "▲" },
+  { id: "night-survivor", label: "Night Spiral Survivor", icon: "☾" },
+],
+
+brainWeather: ["Fog","Bees","Static","Soup","Glitter","Thunder","Haunted Elevator","Oddly Fine"],
+
+brainWeatherMap: {
+  "Fog":             { desc: "Simple, low-effort, visual cards.", moods: ["Need Cute","Frozen"] },
+  "Bees":            { desc: "Grounding, movement, no deep dives.", moods: ["Anxious","Stuck"] },
+  "Static":          { desc: "Calming plus tiny task.", moods: ["Anxious","Frozen"] },
+  "Soup":            { desc: "Humor plus tiny task plus cute.", moods: ["Bored","Frozen"] },
+  "Glitter":         { desc: "Creative prompts plus field trip.", moods: ["Bored","Need Weird"] },
+  "Thunder":         { desc: "Grounding plus soothing links.", moods: ["Anxious"] },
+  "Haunted Elevator":{ desc: "Funny weird content plus one grounding step.", moods: ["Need Weird","Bored"] },
+  "Oddly Fine":      { desc: "Deep dive or field trip.", moods: ["Deep Dive","Bored"] },
+},
+
+moods: ["Anxious","Bored","Frozen","Stuck","Avoiding","Need Cute","Need Weird","Deep Dive"],
+
+moodRecs: {
+  "Anxious":    [{ type:"link", id:"windowswap" },{ type:"link", id:"monterey-cams" },{ type:"cute" },{ type:"link", id:"explore-cams" }],
+  "Bored":      [{ type:"link", id:"useless-web" },{ type:"link", id:"neal-fun" },{ type:"riddle" },{ type:"weirdFact" }],
+  "Frozen":     [{ type:"tinyTask" },{ type:"joke" },{ type:"link", id:"windowswap" }],
+  "Stuck":      [{ type:"hack" },{ type:"tinyTask" },{ type:"link", id:"futility-closet" }],
+  "Avoiding":   [{ type:"hack" },{ type:"joke" },{ type:"tinyTask" }],
+  "Need Cute":  [{ type:"link", id:"explore-cams" },{ type:"cute" },{ type:"weirdFact" },{ type:"link", id:"monterey-cams" }],
+  "Need Weird": [{ type:"link", id:"useless-web" },{ type:"link", id:"atlas-obscura" },{ type:"weirdFact" },{ type:"link", id:"messy-nessy" }],
+  "Deep Dive":  [{ type:"link", id:"atlas-obscura" },{ type:"link", id:"futility-closet" },{ type:"link", id:"public-domain" },{ type:"link", id:"nasa-eyes" }],
+},
+
+pickForMeHelp: ["Make me laugh","Make me calm","Make me curious","Make me move","Make me start"],
+pickForMeEnergy: ["Crumbs","Medium","Possessed"],
+
+pickForMe: {
+  "Make me laugh+Crumbs":     { action: "Read one joke and one fake award. No effort required.", contentType: "makeMeLaugh" },
+  "Make me laugh+Medium":     { action: "Open War and Peas. Read three comics. Return.", contentType: "link", id: "war-peas" },
+  "Make me laugh+Possessed":  { action: "Open Make Me Laugh. Stay until something lands.", contentType: "makeMeLaugh" },
+  "Make me calm+Crumbs":      { action: "Look out someone else's window for 2 minutes. Do not become a Victorian ghost.", contentType: "link", id: "windowswap" },
+  "Make me calm+Medium":      { action: "Open a jellyfish cam and sit with it for 5 minutes.", contentType: "link", id: "monterey-cams" },
+  "Make me calm+Possessed":   { action: "Put on one calming playlist and clear exactly one surface.", contentType: "tinyTask" },
+  "Make me curious+Crumbs":   { action: "Read one weird fact. Find it alarming.", contentType: "weirdFact" },
+  "Make me curious+Medium":   { action: "Open WindowSwap for 2 minutes. Look out someone else's window.", contentType: "link", id: "windowswap" },
+  "Make me curious+Possessed":{ action: "Pick a Deep Dive track. Set a 10-minute timer.", contentType: "link", id: "atlas-obscura" },
+  "Make me move+Crumbs":      { action: "Put both feet on the floor. Then stand up. That's it.", contentType: "tinyTask" },
+  "Make me move+Medium":      { action: "Put on one song and clean only what your hands can reach.", contentType: "tinyTask" },
+  "Make me move+Possessed":   { action: "Get Me Out of the House. Run the Field Trip engine.", contentType: "fieldTrip" },
+  "Make me start+Crumbs":     { action: "Open the thing you're avoiding. That's it. No productivity parade.", contentType: "tinyTask" },
+  "Make me start+Medium":     { action: "Set a 5-minute timer. Do the first ugly version.", contentType: "tinyTask" },
+  "Make me start+Possessed":  { action: "Run the I Can't Start flow. One step at a time.", contentType: "cantStart" },
+},
+
+savedShelves: ["Use When Anxious","Use When Frozen","Makes Me Laugh","Cute Things","Good Rabbit Holes","Actually Useful","Night Safe","Too Weird, Keep"],
+
+cabinetCategories: ["All","Funny","Cute","Comics","Riddles","Life Hacks","Weird Internet","Deep Dives","Tiny Tasks","Calm Things","Scripts","Field Trips"],
+
+};

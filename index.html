@@ -1,189 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Venice Beach Quest</title>
-<meta name="theme-color" content="#fdf8f5" />
-<meta name="description" content="Venice Beach Quest — a trust-based walking app with real Venice landmark unlocks." />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<title>Escape Hatch</title>
+<meta name="theme-color" content="#fdf4f7"/>
+<meta name="description" content="Escape Hatch — a tiny trapdoor with standards."/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="app">
 
-  <!-- Home -->
-  <section class="screen active" id="screen-home">
-    <div class="stack">
+<div class="app" id="app">
 
-      <div class="surface">
-        <div class="surfaceHead">
-          <div>
-            <div class="tag">Venice Beach route</div>
-            <div class="surfaceTitle">Stops along the coast</div>
-            <div class="surfaceCopy">Set your goal first, walk whenever you want, then add your step count at the end of the day.</div>
-          </div>
-          <div class="mapDate" id="mapDate"></div>
-        </div>
-        <div class="mapWrap">
-          <div class="mapShell">
-            <div class="mapRouteLabel">Your Route</div>
-            <svg viewBox="0 0 1000 250" aria-label="Venice Beach Quest route">
-              <defs>
-                <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#c07890"></stop>
-                  <stop offset="100%" stop-color="#a87c3c"></stop>
-                </linearGradient>
-                <linearGradient id="oceanWave" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="rgba(181,219,239,.34)"></stop>
-                  <stop offset="100%" stop-color="rgba(181,219,239,.06)"></stop>
-                </linearGradient>
-                <filter id="routeGlow">
-                  <feGaussianBlur stdDeviation="3.5" result="blurred"></feGaussianBlur>
-                  <feMerge><feMergeNode in="blurred"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
-                </filter>
-              </defs>
-              <g id="routeScenery">
-                <circle cx="98" cy="52" r="22" fill="rgba(255,220,160,.6)"></circle>
-                <path d="M0 202 C118 181,210 223,312 205 C415 187,520 226,625 206 C742 183,842 221,1000 197 L1000 250 L0 250 Z" fill="url(#oceanWave)"></path>
-                <path d="M140 170 l0 -32 M140 144 l-9 -10 M140 144 l9 -10 M140 158 l-9 -10 M140 158 l9 -10" stroke="rgba(105,130,98,.65)" stroke-width="2.8" stroke-linecap="round"></path>
-                <path d="M858 175 l0 -40 M858 147 l-10 -11 M858 147 l10 -11 M858 162 l-10 -11 M858 162 l10 -11" stroke="rgba(105,130,98,.65)" stroke-width="2.8" stroke-linecap="round"></path>
-              </g>
-              <path id="routeBase" fill="none" stroke="rgba(180,148,162,.3)" stroke-width="9" stroke-linecap="round"></path>
-              <path id="routeHalo" fill="none" stroke="rgba(192,120,144,.12)" stroke-width="22" stroke-linecap="round"></path>
-              <path id="routeProgress" fill="none" stroke="url(#routeGradient)" stroke-width="9" stroke-linecap="round" filter="url(#routeGlow)"></path>
-              <g id="routeMarkers"></g>
-              <g id="youMarker">
-                <circle r="16" fill="rgba(255,255,255,.96)" stroke="#c07890" stroke-width="1.8"></circle>
-                <circle r="9" fill="none" stroke="#c07890" stroke-width="1.5"></circle>
-                <circle r="4" fill="#8a4d65"></circle>
-                <text y="33" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9" font-weight="700" fill="#8a4d65" letter-spacing="0.08em">YOU</text>
-              </g>
-            </svg>
-            <div class="mapStopsBadge">◎ 6 stops</div>
-            <div class="legend">
-              <div class="legendItem"><span class="dot u"></span> unlocked</div>
-              <div class="legendItem"><span class="dot l"></span> locked</div>
-              <div class="legendItem"><span class="dot y"></span> you</div>
-            </div>
+  <!-- ── NOW SCREEN ── -->
+  <section class="screen active" id="screen-now">
+    <div class="screen-scroll">
+      <div class="now-header">
+        <div class="brand">Escape Hatch</div>
+        <div class="brand-sub">Pick a door. Your brain is buffering.</div>
+      </div>
+
+      <!-- Daily Door -->
+      <div class="daily-door-wrap">
+        <div class="daily-label">Today's Door</div>
+        <div class="daily-door panel" id="dailyDoor">
+          <div class="daily-door-title" id="dailyDoorTitle"></div>
+          <div class="daily-door-desc" id="dailyDoorDesc"></div>
+          <div class="daily-door-time" id="dailyDoorTime"></div>
+          <div class="daily-door-actions">
+            <button class="btn-primary" id="dailyDoorOpen">Open Door</button>
+            <button class="btn-ghost" id="dailyDoorSave">Save</button>
+            <button class="btn-ghost" id="dailyDoorNot">Not Today</button>
           </div>
         </div>
       </div>
 
-      <div class="panel compactLog">
-        <div class="compactLogHead">
-          <div>
-            <div class="compactLogTitle">Add steps</div>
-            <div class="compactLogSub">No GPS, no timer, no pressure.</div>
-          </div>
-        </div>
-        <div class="compactRow">
-          <input type="number" id="stepsInput" min="1" placeholder="Step count">
-          <button class="btnPrimary" id="logButton">Add</button>
-        </div>
-        <div class="helper" id="quickLogHelper">Add today's step count when you're done walking.</div>
+      <!-- Persistent buttons -->
+      <div class="now-cta-row">
+        <button class="btn-big-cta" id="btnCantStart">I Can't Start</button>
+        <button class="btn-big-cta alt" id="btnDontThink">Don't Make Me Think</button>
       </div>
 
-      <div class="statsPanel">
-        <div class="tag">Progress</div>
-        <div class="statsGrid">
-          <div><div class="statValue" id="heroMiles">0</div><div class="statLabel">Miles</div></div>
-          <div><div class="statValue" id="heroSteps">0</div><div class="statLabel">Steps</div></div>
-          <div><div class="statValue" id="heroUnlocked">0/6</div><div class="statLabel">Unlocked</div></div>
-        </div>
-        <div class="progressBarWrap">
-          <div class="progressBarFill" id="progressBarFill"></div>
-        </div>
-        <div class="helper" id="snapshotHelper">0% complete · set a step goal to begin</div>
+      <!-- Mood buttons -->
+      <div class="mood-section">
+        <div class="section-label">How are you?</div>
+        <div class="mood-grid" id="moodGrid"></div>
       </div>
 
-      <div class="descriptionPanel">
-        <div class="tag">About Venice Beach</div>
-        <div class="bodyText">Venice Beach is palms, murals, skaters, beach chaos, and a suspicious amount of confidence. This route moves through the places people actually picture first.</div>
+      <!-- Recommendation panel (hidden until mood picked) -->
+      <div class="rec-panel panel hidden" id="recPanel">
+        <div class="rec-action" id="recAction"></div>
+        <div class="rec-card" id="recCard"></div>
+        <div class="rec-buttons">
+          <button class="btn-primary" id="recOpen">Open</button>
+          <button class="btn-ghost" id="recSave">Save</button>
+          <button class="btn-ghost" id="recAnother">Give Me Another</button>
+          <button class="btn-ghost nope" id="recNope">Nope</button>
+        </div>
+        <button class="rec-did-thing" id="recDidThing">I Did One Tiny Thing ✦</button>
+      </div>
+
+      <!-- Brain Weather -->
+      <div class="weather-section">
+        <div class="section-label">Brain weather check-in</div>
+        <div class="weather-prompt">What's the weather in your head?</div>
+        <div class="weather-grid" id="weatherGrid"></div>
+        <div class="weather-result hidden" id="weatherResult"></div>
       </div>
 
     </div>
   </section>
 
-  <!-- Stops -->
-  <section class="screen" id="screen-stops">
-    <div class="surface">
-      <div class="surfaceHead">
-        <div>
-          <div class="tag">Landmarks</div>
-          <div class="surfaceTitle">Venice stops</div>
-          <div class="stopsUnlockedSummary" id="stopsUnlockedSummary">0 of 6 unlocked</div>
-        </div>
+  <!-- ── CABINET SCREEN ── -->
+  <section class="screen" id="screen-cabinet">
+    <div class="screen-scroll">
+      <div class="cabinet-header">
+        <div class="brand">The Cabinet</div>
+        <div class="brand-sub">A curated drawer of internet treasures.</div>
       </div>
-      <div class="gridGallery" id="stopsWrap"></div>
+
+      <!-- Category filters -->
+      <div class="cat-filters" id="catFilters"></div>
+
+      <!-- Cards grid -->
+      <div class="cabinet-grid" id="cabinetGrid"></div>
+
     </div>
   </section>
 
-  <!-- Goals -->
-  <section class="screen" id="screen-goals">
-    <div class="surface">
-      <div class="surfaceHead">
-        <div>
-          <div class="tag">Goals</div>
-          <div class="surfaceTitle">Pick a target that fits.</div>
-          <div class="surfaceCopy">Set a goal, move through it at your own pace.</div>
-        </div>
+  <!-- ── SAVED SCREEN ── -->
+  <section class="screen" id="screen-saved">
+    <div class="screen-scroll">
+      <div class="cabinet-header">
+        <div class="brand">Saved</div>
+        <div class="brand-sub">Your shelf. Organized. Almost.</div>
       </div>
-      <div class="goalCard">
-        <div class="currentGoalLine" id="currentGoalLine"></div>
-        <div class="goalFields">
-          <div class="goalRow">
-            <label class="goalLabel" for="goalStepsInput">Total steps to complete the route</label>
-            <input type="number" id="goalStepsInput" min="1" placeholder="20000">
-          </div>
-        </div>
-        <div class="resetRow">
-          <button class="btnPrimary" id="saveGoalsButton">Set goal</button>
-        </div>
-        <div class="bestWayBox">
-          <div class="tag">Best way to use it</div>
-          <p class="bodyText">Set your goal first, walk whenever you want, then add your step count once at the end of the day. The route moves forward based on the pace you chose.</p>
-        </div>
-        <div class="resetRow" style="margin-top:8px">
-          <button class="btnGhost" id="resetProgressButton">Reset quest</button>
-        </div>
-        <div class="resetNote">Clears all steps and unlocks. Your goal stays.</div>
+
+      <div class="shelf-tabs" id="shelfTabs"></div>
+      <div class="saved-grid" id="savedGrid"></div>
+      <div class="empty-state hidden" id="savedEmpty">
+        <div class="empty-icon">◌</div>
+        <div class="empty-text">Nothing saved yet. Bold minimalist choice.</div>
       </div>
+
+      <!-- Charms -->
+      <div class="charms-section">
+        <div class="section-label">Your charms</div>
+        <div class="charms-grid" id="charmsGrid"></div>
+        <div class="charms-empty hidden" id="charmsEmpty">No charms yet. Complete tiny things to earn them.</div>
+      </div>
+
     </div>
   </section>
 
-  <!-- Nav -->
-  <div class="bottomNav">
-    <div class="navBar">
-      <button class="navBtn active" data-screen="home"><div class="navIcon">✦</div><div class="navLabel">Home</div></button>
-      <button class="navBtn" data-screen="stops"><div class="navIcon">◌</div><div class="navLabel">Stops</div></button>
-      <button class="navBtn" data-screen="goals"><div class="navIcon">◎</div><div class="navLabel">Goals</div></button>
+  <!-- ── BOTTOM NAV ── -->
+  <div class="bottom-nav" id="bottomNav">
+    <div class="nav-bar">
+      <button class="nav-btn active" data-screen="now">
+        <div class="nav-icon">✦</div>
+        <div class="nav-label">Now</div>
+      </button>
+      <button class="nav-btn" data-screen="cabinet">
+        <div class="nav-icon">◉</div>
+        <div class="nav-label">Cabinet</div>
+      </button>
+      <button class="nav-btn" data-screen="saved">
+        <div class="nav-icon">◌</div>
+        <div class="nav-label">Saved</div>
+      </button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ── I CAN'T START OVERLAY ── -->
+<div class="overlay hidden" id="overlayStart" role="dialog" aria-modal="true" aria-label="I Can't Start flow">
+  <div class="overlay-panel">
+    <button class="overlay-close" id="closeStart" aria-label="Close">✕</button>
+    <div class="overlay-eyebrow">I Can't Start</div>
+    <div class="cs-step-wrap" id="csStepWrap">
+      <div class="cs-step-text" id="csStepText"></div>
+      <div class="cs-step-buttons">
+        <button class="btn-primary" id="csNext">Next</button>
+        <button class="btn-ghost" id="csEasier">Make it easier</button>
+        <button class="btn-ghost" id="csSkip">Skip this</button>
+      </div>
+    </div>
+    <div class="cs-door-wrap hidden" id="csDoorWrap">
+      <div class="cs-door-prompt">Pick one tiny door.</div>
+      <div class="cs-door-grid" id="csDoorGrid"></div>
+    </div>
+    <div class="cs-end hidden" id="csEnd">
+      <div class="cs-end-text">You moved. That counts. Annoying, but true.</div>
+      <div class="cs-end-charm">✦</div>
+      <button class="btn-primary" id="csEndClose">Close</button>
     </div>
   </div>
 </div>
 
-<!-- Postcard modal -->
-<div class="modalBg" id="modalBg" aria-hidden="true">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modalMedia">
-      <div class="modalFallback" id="modalFallback">Venice postcard</div>
-      <img id="modalImage" alt="">
-      <div class="modalOverlay"></div>
-      <div class="modalCopy">
-        <div class="modalEyebrow" id="modalEyebrow"></div>
-        <div class="modalTitle" id="modalTitle"></div>
-      </div>
+<!-- ── PICK FOR ME OVERLAY ── -->
+<div class="overlay hidden" id="overlayPick" role="dialog" aria-modal="true" aria-label="Pick for me">
+  <div class="overlay-panel">
+    <button class="overlay-close" id="closePick" aria-label="Close">✕</button>
+    <div class="overlay-eyebrow">Don't Make Me Think</div>
+
+    <div class="pfm-step" id="pfmStep1">
+      <div class="pfm-q">What kind of help?</div>
+      <div class="pfm-options" id="pfmHelpGrid"></div>
     </div>
-    <div class="modalBottom">
-      <div class="modalText" id="modalText"></div>
-      <button class="closeBtn" id="closeModalButton">Close</button>
+    <div class="pfm-step hidden" id="pfmStep2">
+      <div class="pfm-q">How much energy?</div>
+      <div class="pfm-options" id="pfmEnergyGrid"></div>
+    </div>
+    <div class="pfm-result hidden" id="pfmResult">
+      <div class="pfm-result-action" id="pfmResultAction"></div>
+      <div class="pfm-result-buttons">
+        <button class="btn-primary" id="pfmGo">Let's go</button>
+        <button class="btn-ghost" id="pfmAnother">Try another</button>
+        <button class="btn-ghost" id="pfmCloseDone">Close</button>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- ── SAVE TO SHELF MODAL ── -->
+<div class="overlay hidden" id="overlayShelf" role="dialog" aria-modal="true" aria-label="Save to shelf">
+  <div class="overlay-panel sm">
+    <button class="overlay-close" id="closeShelf" aria-label="Close">✕</button>
+    <div class="overlay-eyebrow">Save to shelf</div>
+    <div class="shelf-list" id="shelfList"></div>
+    <button class="btn-primary" id="shelfSaveConfirm">Save</button>
+  </div>
+</div>
+
+<!-- ── SCRIPT DETAIL MODAL ── -->
+<div class="overlay hidden" id="overlayScript" role="dialog" aria-modal="true" aria-label="Tiny script">
+  <div class="overlay-panel">
+    <button class="overlay-close" id="closeScript" aria-label="Close">✕</button>
+    <div class="overlay-eyebrow" id="scriptSituation"></div>
+    <div class="script-title" id="scriptTitle"></div>
+    <div class="script-label">Standard</div>
+    <div class="script-text" id="scriptText"></div>
+    <div class="script-label">Softer</div>
+    <div class="script-text softer" id="scriptSofter"></div>
+    <div class="script-label">Firmer</div>
+    <div class="script-text firmer" id="scriptFirmer"></div>
+    <div class="script-actions">
+      <button class="btn-primary" id="scriptCopy">Copy Standard</button>
+      <button class="btn-ghost" id="scriptSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── FIELD TRIP MODAL ── -->
+<div class="overlay hidden" id="overlayTrip" role="dialog" aria-modal="true" aria-label="Field trip">
+  <div class="overlay-panel">
+    <button class="overlay-close" id="closeTrip" aria-label="Close">✕</button>
+    <div class="overlay-eyebrow">Field Trip</div>
+    <div class="trip-title" id="tripTitle"></div>
+    <div class="trip-why" id="tripWhy"></div>
+    <div class="trip-mission-label">Tiny mission</div>
+    <div class="trip-mission" id="tripMission"></div>
+    <div class="trip-meta" id="tripMeta"></div>
+    <div class="trip-actions">
+      <button class="btn-primary" id="tripGo">Let's go</button>
+      <button class="btn-ghost" id="tripSave">Save</button>
+      <button class="btn-ghost" id="tripAnother">Give me another</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── RIDDLE MODAL ── -->
+<div class="overlay hidden" id="overlayRiddle" role="dialog" aria-modal="true" aria-label="Riddle">
+  <div class="overlay-panel sm">
+    <button class="overlay-close" id="closeRiddle" aria-label="Close">✕</button>
+    <div class="overlay-eyebrow">Riddle Room</div>
+    <div class="riddle-q" id="riddleQ"></div>
+    <button class="btn-ghost reveal-btn" id="riddleReveal">Tap to reveal</button>
+    <div class="riddle-a hidden" id="riddleA"></div>
+    <div class="riddle-actions">
+      <button class="btn-primary" id="riddleAnother">Another one</button>
+      <button class="btn-ghost" id="riddleClose">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast hidden" id="toast"></div>
+
+<!-- ── CHARM NOTIFICATION ── -->
+<div class="charm-notif hidden" id="charmNotif">
+  <div class="charm-notif-icon" id="charmNotifIcon"></div>
+  <div class="charm-notif-text" id="charmNotifText"></div>
+</div>
 
 <script src="data.js"></script>
 <script src="app.js"></script>
